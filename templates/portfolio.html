@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block navigationbar %}
+<div class="topnav">
+    <a href={{url_for('index')}}>Home</a>
+    <a href={{url_for('analyst')}}>Analyst View</a>
+    <a href={{url_for('stocks')}}>Hot Stocks</a>
+    <a href="{{url_for('recommendation')}}">Recommendations</a>
+    <a href="{{url_for('ranker')}}">Rank view</a>
+    <a class = "active" href="{{url_for('portfolio')}}">My Portfolio</a>
+    <a href="{{url_for('today')}}">Portfolio Updates</a>
+    <a href="{{url_for('orders')}}">Orders</a>
+    </div>
+<div class="container">
+{% endblock %}
+
+
+{% block forms %}
+<h4>Add to Portfolio</h4>
+    <form action="/add_csv_portfolio" method="POST" enctype="multipart/form-data" title="Ensure Data is in the columns: 'Company', 'Bought Date','Price Bought At','Target','Upside','Quantity'">
+    <label for="upload">Upload CSV portfolio</label>
+    <input type="file" id="upload" name="upload" accept=".csv">
+    <input type="submit" value="Update portfolio" id="submit-button">
+</form>
+
+<script>
+    $(document).ready(function() {
+  $('#mySelect').select2();
+});
+</script>
+{% endblock %}   
+
+{% block df %}
+
+<div class="container">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>S.No.</th>
+                <th>Company</th>
+                <th>Date Bought</th>
+                <th>Qty</th>
+                <th>Price Bought At (INR)</th>
+                <th>LTP (INR)</th>
+                <th>Current Value (INR)</th>
+                <th>P&L %</th>
+                <th>Target Price (INR)</th>
+                <th>Expected Return %</th>
+                <th>Remaining Upside %</th>
+                <th>Buy at<br/>same target</th>
+                <th>Sell and Track</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, row in df.iterrows() %}
+            <tr>
+                <th>{{loop.index}}</th>
+                <th>{{row['Company']}}</th>
+                <td>{{row['Bought Date']}}</td>
+                <td>{{row['Quantity']}}</td>
+                <td>{{row['Price Bought At']}}</td>
+                <td>{{row['LTP']}}</td>
+                <td>{{row['Current Value']}}</td>
+                <td>{{row['P/L %']}}</td>
+                <td>{{row['Target']}}</td>
+                <td>{{row['Upside']}}</td>
+                <td>{{row['Remaining Upside']}}</td>
+                <td>
+                    <form action='/buy_from_portfolio' method="POST">
+                        
+                        <input type="Number" name="qty" id='qty' min ='1' required placeholder="Qty"/>
+                        <input type="hidden" name="company" value="{{ row['Company'] }}">
+                        <input type="hidden" name="target" value="{{ row['Target'] }}">
+                        <input type="submit" value="Buy" id="submit-button">
+                    </form>
+                </td>
+                <td>
+                    <form action='/sell_track_from_portfolio' method="POST">
+                        {% if recommendation_sell[row['Company']] %}
+                            <p title="{{ reason_recommendation[row['Company']]| safe }}"">ⓘ Recommended</p>
+                        {% endif %}
+                        <input type="hidden" name="quantity" value="{{ row['Quantity'] }}">
+                        <input type="hidden" name="company" value="{{ row['Company'] }}">
+                        <input type="hidden" name="bought_date" value="{{ row['Bought Date'] }}">
+                        <input type="hidden" name="price_bought_at" value="{{ row['Price Bought At'] }}">
+                        <input type="hidden" name="target" value="{{ row['Target'] }}">
+                        <input type="submit" value="Sell" id="submit-button">
+                    </form>
+                </td>
+                
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="container">
+    <h1>Companies to be Tracked</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>S.No.</th>
+                <th>Company</th>
+                <th>Qty</th>
+                <th>Bought On</th>
+                <th>Sold On</th>
+                <th>LTP (INR)</th>
+                <th>Target Price (INR)</th>
+                <th>Price Bought At (INR)</th>
+                <th>Price Sold At (INR)</th>
+                <th>Received Return %</th>
+                <th>Current Return %</th>
+                <th>Buy at<br/>same target</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, row in track_df.iterrows() %}
+            <tr>
+                <th>{{loop.index}}</th>
+                <th>{{row['Company']}}</th>
+                <td>{{row['Quantity']}}</td>
+                <td>{{row['Buy Date']}}</td>
+                <td>{{row['Sell Date']}}</td>
+                <td>{{row['LTP']}}</td>
+                <td>{{row['Target']}}</td>
+                <td>{{row['Buy Price']}}</td>
+                <td>{{row['Sell Price']}}</td>
+                <td>{{row['Received Return']}}</td>
+                <td>{{row['Current Return']}}</td>
+                <td>
+                    <form action='/buy_from_tracking_portfolio' method="POST">
+                        {% if recommendation_buy[row['Company']] %}
+                            <p title="{{ reason_buy[row['Company']]| safe }}"">ⓘ Recommended</p>
+                        {% endif %}
+                        <input type="Number" name="qty" id='qty' min ='1' required placeholder="Qty"/>
+                        <input type="hidden" name="quantity" value="{{ row['Quantity'] }}">
+                        <input type="hidden" name="company" value="{{ row['Company'] }}">
+                        <input type="hidden" name="bought_date" value="{{ row['Buy Date'] }}">
+                        <input type="hidden" name="sold_date" value="{{ row['Sell Date'] }}">
+                        <input type="hidden" name="price_bought_at" value="{{ row['Buy Price'] }}">
+                        <input type="hidden" name="target" value="{{ row['Target'] }}">
+                        <input type="submit" value="Buy" id="submit-button">
+                    </form>
+                </td>
+                <td>
+                    <form action='/delete_row' method="POST">
+                        <input type="hidden" name="quantity" value="{{ row['Quantity'] }}">
+                        <input type="hidden" name="company" value="{{ row['Company'] }}">
+                        <input type="hidden" name="bought_date" value="{{ row['Buy Date'] }}">
+                        <input type="hidden" name="sold_date" value="{{ row['Sell Date'] }}">
+                        <input type="hidden" name="price_bought_at" value="{{ row['Buy Price'] }}">
+                        <input type="hidden" name="target" value="{{ row['Target'] }}">
+                        <button type="submit" class="delete-button">&#128465;</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

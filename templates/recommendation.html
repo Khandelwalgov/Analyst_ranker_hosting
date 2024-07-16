@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+
+{% block title %}Stocks Recommendations{% endblock %}
+
+{% block navigationbar %}
+<div class="topnav">
+    <a href={{url_for('index')}}>Home</a>
+    <a href={{url_for('analyst')}}>Analyst View</a>
+    <a href={{url_for('stocks')}}>Hot Stocks</a>
+    <a class = "active" href="{{url_for('recommendation')}}">Recommendations</a>
+    <a href="{{url_for('ranker')}}">Rank view</a>
+    <a href="{{url_for('portfolio')}}">My Portfolio</a>
+    <a href="{{url_for('today')}}">Portfolio Updates</a>
+    <a href="{{url_for('orders')}}">Orders</a>
+
+
+  </div>
+<div class="container">
+{% endblock %}
+
+{% block forms %}
+<form action="/generate_rec" method="POST">
+<!-- <label for="priority">Prioritise</label>
+<select id ="priority" name ="priority">
+    {% for option in dropdown_options_for_rec['priority'] %}
+        <option value="{{ option }}" {% if form_values['priority'] == option %}selected{% endif %}>{{ option }}</option>
+    {% endfor %}
+    {% for option in dropdown_options_for_rec['weighted-options'] %}
+        <option value="{{ option }}" {% if form_values['priority'] == option %}selected{% endif %} {% if form_values['rank-consider'] == 'no' %}disabled{% endif %}>{{ option }}</option>
+    {% endfor %}
+</select> -->
+<label for="period">Period</label>
+<select id ="period" name ="period">
+    {% for option in dropdown_options_for_rec['period'] %}
+        <option value="{{ option }}" {% if form_values['period'] == option %}selected{% endif %}>{{ option }}</option>
+    {% endfor %}
+
+</select>
+<label for="num">Number of Stocks</label>
+<select id ="num" name ="num">
+    {% for option in dropdown_options_for_rec['num'] %}
+        <option value="{{ option }}" {% if form_values['num'] == option %}selected{% endif %}>{{ option }}</option>
+    {% endfor %}
+</select>
+<label for="sort-by">Sort By</label>
+<select id ="sort-by" name ="sort-by">
+    {% for option in dropdown_options_for_rec['sort-by'] %}
+        <option value="{{ option }}" {% if form_values['sort-by'] == option %}selected{% endif %}>{{ option }}</option>
+    {% endfor %}
+    {% for option in dropdown_options_for_rec['weighted-options'] %}
+        <option value="{{ option }}" {% if form_values['sort-by'] == option %}selected{% endif %} {% if form_values['rank-consider'] == 'no' %}disabled{% endif %} >{{ option }}</option>
+    {% endfor %}
+</select>
+<label for="upside-factor-weight">Upside Factor Weight</label>
+<select id ="upside-factor-weight" name ="upside-factor-weight">
+    {% for option in dropdown_options_for_rec['upside-factor-weight'] %}
+        <option value="{{ option }}" {% if form_values['upside-factor-weight'] == option %}selected{% endif %}>{{ option }}</option>
+    {% endfor %}
+</select>
+<br/>
+<label for ="minimum-upside-current">Min Current Average Upside</label>
+<select id ="minimum-upside-current" name ="minimum-upside-current">
+    {% for option in dropdown_options_for_rec['minimum-upside-current'] %}
+        <option value="{{ option }}" {% if form_values['minimum-upside-current'] == option %}selected{% endif %}>{{ option }}</option>
+    {% endfor %}
+</select>
+<label for ="market-cap">Market Cap Filter</label>
+<select id ="market-cap" name ="market-cap">
+    {% for option in dropdown_options_for_rec['market-cap'] %}
+        <option value="{{ option }}" {% if form_values['market-cap'] == option %}selected{% endif %}>{{ option }}</option>
+    {% endfor %}
+</select>
+<label for="rank-consider">Weighted Averages Using Rank</label>
+<input type ="checkbox" id ="rank-consider" name="rank-consider" value ="yes" {% if form_values['rank-consider'] == 'yes' %}checked{% endif %}/>
+<br/>
+<div id="content-style">
+<div id="content"
+    {% if form_values['rank-consider'] != 'yes' %}
+    style="pointer-events: none; opacity: 0.5;"
+    {% endif %}>
+<h4> Analyst Ranking generation conditions</h4>
+<div>
+<label for="start-date">Start Date:</label>
+    <input type="date" id="start-date" name="start-date" value="{{ form_values['start-date'] }}" required>
+    
+    <label for="end-date">End Date:</label>
+    <input type="date" id="end-date" name="end-date" value="{{ form_values['end-date'] }}" required>
+    
+    <label for="period-considered">Period to be considered</label>
+    <select id="period-considered" name="period-considered">
+        {% for option in dropdown_options_for_rec['period-considered'] %}
+        <option value="{{ option }}" {% if form_values['period-considered'] == option %}selected{% endif %}>{{ option }}</option>
+        {% endfor %}
+    </select>
+</div>
+</div>
+<input type="submit" value="Generate" id="submit-button">
+</div>
+<script>
+    var checkbox = document.getElementById('rank-consider');
+    var contentDiv = document.getElementById('content');
+    var prioritySelect =document.getElementById('priority')
+    var sortSelect = document.getElementById('sort-by')
+    checkbox.addEventListener('change', function() {
+        if (checkbox.checked) {
+            // Checkbox is checked, remove disabled styles
+            optionsPriority =prioritySelect.options;
+            optionsSort=sortSelect.options;
+            for (var i = 0; i < optionsPriority.length; i++){
+                if (optionsPriority[i].value == 'Weighted Target' || optionsPriority[i].value == 'Weighted Upside') {
+                    optionsPriority[i].disabled = false;
+                } 
+
+            }
+            for (var i = 0; i < optionsSort.length; i++){
+                if (optionsSort[i].value == 'Weighted Target' || optionsSort[i].value == 'Weighted Upside') {
+                    optionsSort[i].disabled = false;
+                } 
+
+            }
+
+            contentDiv.style.pointerEvents = 'auto';
+            contentDiv.style.opacity = '1';
+        } else {
+            // Checkbox is unchecked, disable interaction with content
+            contentDiv.style.pointerEvents = 'none';
+            contentDiv.style.opacity = '0.5';
+            optionsPriority =prioritySelect.options;
+            optionsSort=sortSelect.options;
+            for (var i = 0; i < optionsPriority.length; i++){
+                if (optionsPriority[i].value == 'Weighted Target' || optionsPriority[i].value == 'Weighted Upside') {
+                    optionsPriority[i].disabled = true;
+                } 
+
+            }
+            for (var i = 0; i < optionsSort.length; i++){
+                if (optionsSort[i].value == 'Weighted Target' || optionsSort[i].value == 'Weighted Upside') {
+                    optionsSort[i].disabled = true;
+                } 
+
+            }
+        }
+    });
+</script>
+</form>
+{% endblock %}
+
+{% block df %}
+<div class="container">
+    <form>
+    <label for="Collapse target">Collapse target</label>
+    <input type="checkbox" name="Collapse target" id="Collapse target" checked/>
+    <label for="Collapse upside">Collapse Upside(Reco)</label>
+    <input type="checkbox" name="Collapse upside" id="Collapse upside" checked/>
+    <label for="Collapse upside curr">Collapse Upside(Current)</label>
+    <input type="checkbox" name="Collapse upside curr" id="Collapse upside curr" checked/>
+    <label for="Collapse computations">Collapse computations</label>
+    <input type="checkbox" name="Collapse computations" id="Collapse computations" checked/>
+</form>
+  <table class="table table-striped">
+      <thead>
+          <tr>
+              <th>S. No.</th>
+              <th title="Stock recommended">Company</th>
+              <th title="Number of calls for the given company in the period">Num of <br/>Recs</th>
+              {% if wtcon %}
+              <th title="Upside of the weighted average of analysts' targets on the LTP">Weighted Upside<br/>(Current) %</th>
+              {% endif %}
+              {% if wtcon %}
+              <th title="Using Analyst rankings to take weighted average of the Targets">Weighted Target<br/>(INR)</th>
+              {% endif %}
+              <th title="LTP">LTP<br/>(INR)</th>
+              <th title="5% of the average traded value in crores">Max Allowed Trade Value (Cr.)</th>
+              <th title="(Average traded volume over last 20 days) x (LTP)">Average Traded Value (Cr.)</th>   
+              
+              <th title="Market Cap of Company">Mkt Cap<br/>(Cr.)</th>
+              
+              <th title="Average Target given by analysts" class="target">Avg Target<br/>(INR)</th>
+              <th title="Maximum Target" class="target">Max Target<br/>(INR)</th>
+              <th title="Minimum Target" class="target">Min Target<br/>(INR)</th>
+             
+              
+              <th title="Average Upside at the time of Call"class="upside-r">Avg Upside<br/>(Reco Date)</th>
+              <th title="Maximum Upside given on call date" class="upside-r">Max Upside<br/>(Reco Date)</th>
+              <th title="Minimum Upside gien on call date"class="upside-r">Min Upside<br/>(Reco Date)</th>
+              {% if wtcon %}
+              <th title="Weighted average of the upsides given on call date"class="upside-r">Weighted Upside<br/>(Reco Date)</th>
+              {% endif %}
+              <th title="Upside of average Target on LTP"class="upside-c">Avg Upside<br/>(Current)</th>
+              <th title="Upside of max Target on LTP"class="upside-c">Max Upside<br/>(Current)</th>
+              <th title="Upside of min Target on LTP"class="upside-c">Min Upside<br/>(Current)</th>
+              
+              {% if wtcon %}
+              <th title="Weighted Number of calls/recommendations"class="deets">Wt. Num<br/>of Recs</th>
+              {% endif %}
+              <th title="Factor of weighted number of calls"class="deets"># Calls Factor</th>
+              <th title="Factor of weighted current upside"class="deets">Wt. Upside Factor</th>
+              <th title="Final Factor suggested to be used for choosing stocks to invest in"class="deets">Final Factor</th>
+              <th title="Calls on the given company ">Details</th>
+              <th title="Comparision graph">Graph</th>
+              <th title="Buy the given stock">Buy</th>
+              <!-- <th title="Sell the stock">Sell</th> -->
+          </tr>
+      </thead>
+      {% set counter = 1 %} 
+      <tbody>
+        
+          {% for index, row in df.iterrows() %}
+          <tr>
+              <th>{{loop.index}}</th>
+              <th>{{ row.name }}</th>
+              <td>{{ row['Number of Recommendations'] }}</td>
+              {% if wtcon %}
+              <td>{{ row['Weighted Upside Current'] }}</td>
+              {% endif %}   
+              {% if wtcon %}
+              <td>{{ row['Weighted Target'] }}</td>
+              {% endif %}
+              <td>{{ row['LTP'] }}</td>
+              <td>{{row['Recommended Trade Value']}}</td>
+              <td>{{row['Average Traded Value']}}</td>
+              
+              <td>{{row['Market Cap']}}</td>
+              <td class="target">{{ row['Average Target'] }}</td>
+              <td class="target">{{ row['Max Target'] }}</td>
+              <td class="target">{{ row['Minimum Target'] }}</td>
+             
+              <td class="upside-r">{{ row['Average Upside'] }}</td>
+              <td class="upside-r">{{ row['Max Upside'] }}</td>
+              <td class="upside-r">{{ row['Minimum Upside'] }}</td>
+              {% if wtcon %}
+              <td class="upside-r">{{ row['Weighted Upside'] }}</td>
+              {% endif %}
+              <td class="upside-c">{{ row['Average Upside Current'] }}</td>
+              <td class="upside-c">{{ row['Max Upside Current'] }}</td>
+              <td class="upside-c">{{ row['Minimum Upside Current'] }}</td>
+              
+              {% if wtcon %}
+              <td class="deets">{{ row['Weighted Number of Calls'] }}</td>
+              {% endif %}
+              <td class="deets">{{row['Norm Wt Num Calls']}}</td>
+              <td class="deets">{{row['Norm Wt Avg Upside Curr']}}</td>
+              <td class="deets">{{row['Final Factor']}}</td>
+              <td><button class="eye-button" data-toggle="modal" data-target="#detailsModal" data-company="{{ row.name }}">&#128065;</button></td>
+              <td><button class="graph-button" data-company="{{ row.name }}">📈</button></td>
+              <td>
+                    <form action='/add_to_portfolio_from_rec' method="POST">
+                        <input type="Number" name="qty" id='qty' min ='1' required placeholder="Qty"/>
+                        <input type="hidden" name="company" value="{{ row.name }}"/>
+                        <input type="hidden" name="target" value="{{ row['Weighted Target'] }}"/>
+                        <input type="hidden" name="upside" value="{{row['Weighted Upside Current']}}"/>
+                        <input type="submit" value="Buy" id="submit-button">
+                    </form>
+              </td>
+              <!-- <td>
+                <form action='/sell_from_portfolio_from_rec' method="POST">
+                    <input type="hidden" name="company" value="{{ row.name }}"/>
+                    <input type="hidden" name="target" value="{{ row['Weighted Target'] }}"/>
+                    <input type="hidden" name="upside" value="{{row['Weighted Upside Current']}}"/>
+
+                    <input type="submit" value="Sell" id="submit-button">
+                </form>
+          </td> -->
+            </tr>
+
+          {% set counter = counter + 1 %}
+          {% endfor %}
+      </tbody>
+  </table>
+  <form action="/show_full_table" method="POST">
+    <input type="submit" value="Show Full Table" id="submit-button">
+  </form>
+</div>
+<div id="detailsModal" class="modal">
+  <div class="modal-content">
+      <span class="close">&times;</span>
+      <div id="stock-details"></div>
+  </div>
+</div>
+<div id="graphModal" class="modal">
+    <div class="graph-content">
+        <span class="close">&times;</span>
+        <div id="graph-details"></div>
+    </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      const eyeButtons = document.querySelectorAll('.eye-button');
+      const modal = document.getElementById('detailsModal');
+      const closeBtn = modal.querySelector('.close');
+      const graphButtons = document.querySelectorAll('.graph-button');
+      const graphModal = document.getElementById('graphModal');
+      const graphCloseBtn = graphModal.querySelector('.close');
+
+
+      eyeButtons.forEach(button => {
+          button.addEventListener('click', function () {
+              const company = encodeURIComponent(this.getAttribute('data-company'));  // URL encode the company name
+              fetch(`/get_stocks_details_for_rec?company=${company}`)
+                  .then(response => response.json())
+                  .then(data => {
+                      const stockDetails = document.getElementById('stock-details');
+                      stockDetails.innerHTML = data.html;
+                      modal.style.display = 'block';
+                  });
+          });
+      });
+      graphButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const company = encodeURIComponent(this.getAttribute('data-company'));
+                    fetchAndGenerateGraph(company);
+                });
+            });
+      closeBtn.addEventListener('click', function () {
+          modal.style.display = 'none';
+      });
+      graphCloseBtn.addEventListener('click', function () {
+                graphModal.style.display = 'none';
+            });
+        
+
+      window.addEventListener('click', function (event) {
+          if (event.target === modal) {
+              modal.style.display = 'none';
+          }
+          if (event.target === graphModal) {
+                    graphModal.style.display = 'none';
+                }
+      });
+
+      function fetchAndGenerateGraph(company) {
+                fetch(`/generate_stock_graph?company=${company}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const graphDetails = document.getElementById('graph-details');
+                        const graphData = JSON.parse(data.graph);
+                        Plotly.newPlot(graphDetails, graphData.data, graphData.layout);
+                        graphModal.style.display = 'block';
+                    });
+            }
+
+  });
+  checkbox_upr=document.getElementById('Collapse upside')
+  checkbox_computations=document.getElementById('Collapse computations')
+  checkbox_upc=document.getElementById('Collapse upside curr')
+  checkbox_tar=document.getElementById('Collapse target')
+  upr=document.getElementsByClassName('upside-r')
+  upc=document.getElementsByClassName('upside-c')
+  computations=document.getElementsByClassName('deets')
+  tar=document.getElementsByClassName('target')
+  checkbox_upr.addEventListener('change',function(){
+  if(checkbox_upr.checked){
+    for (var i = 0; i < upr.length; i++){
+        upr[i].style.display='none';
+    }
+  }
+  else{
+    for (var i = 0; i < upr.length; i++){
+        upr[i].style.display='table-cell';
+    }
+  }
+});
+checkbox_upc.addEventListener('change',function(){
+  if(checkbox_upc.checked){
+    for (var i = 0; i < upc.length; i++){
+        upc[i].style.display='none';
+    }
+  }
+  else{
+    for (var i = 0; i < upc.length; i++){
+        upc[i].style.display='table-cell';
+    }
+  }
+});
+checkbox_computations.addEventListener('change',function(){
+  if(checkbox_computations.checked){
+    for (var i = 0; i < computations.length; i++){
+        computations[i].style.display='none';
+    }
+  }
+  else{
+    for (var i = 0; i < computations.length; i++){
+        computations[i].style.display='table-cell';
+    }
+  }
+});
+checkbox_tar.addEventListener('change',function(){
+  if(checkbox_tar.checked){
+    for (var i = 0; i < tar.length; i++){
+        tar[i].style.display='none';
+    }
+  }
+  else{
+    for (var i = 0; i < tar.length; i++){
+        tar[i].style.display='table-cell';
+    }
+  }
+});
+
+
+
+</script>
+{% endblock %}
+</div>
+

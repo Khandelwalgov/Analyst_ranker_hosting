@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block navigationbar %}
+<div class="topnav">
+    <a href={{url_for('index')}}>Home</a>
+    <a href={{url_for('analyst')}}>Analyst View</a>
+    <a href={{url_for('stocks')}}>Hot Stocks</a>
+    <a href="{{url_for('recommendation')}}">Recommendations</a>
+    <a href="{{url_for('ranker')}}">Rank view</a>
+    <a href="{{url_for('portfolio')}}">My Portfolio</a>
+    <a class = "active" href="{{url_for('today')}}">Portfolio Updates</a>
+    <a href="{{url_for('orders')}}">Orders</a>
+
+    </div>
+<div class="container">
+{% endblock %}
+{% block forms %}
+
+{% endblock %}   
+
+{% block df %}
+<div class="container">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Updates</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, row in df.iterrows() %}
+            <tr>
+                <td>{{row['Remarks']}}</th>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

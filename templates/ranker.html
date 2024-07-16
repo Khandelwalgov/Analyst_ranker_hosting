@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Analysts Ranking{% endblock %}
+
+{% block navigationbar %}
+<div class="topnav">
+    <a href={{url_for('index')}}>Home</a>
+    <a href={{url_for('analyst')}}>Analyst View</a>
+    <a href={{url_for('stocks')}}>Hot Stocks</a>
+    <a href="{{url_for('recommendation')}}">Recommendations</a>
+    <a class = "active" href="{{url_for('ranker')}}">Rank view</a>
+    <a href="{{url_for('portfolio')}}">My Portfolio</a>
+    <a href="{{url_for('today')}}">Portfolio Updates</a>
+    <a href="{{url_for('orders')}}">Orders</a>
+
+
+    </div>
+<div class="container">
+{% endblock %}
+
+
+{% block forms %}
+<form action="/generate_rank" method="POST">
+    <div id="content-style">
+    <div id="content">
+    <div>
+    <label for="start-date">Start Date:</label>
+        <input type="date" id="start-date" name="start-date" value="{{ form_values['start-date'] }}" required>
+        
+        <label for="end-date">End Date:</label>
+        <input type="date" id="end-date" name="end-date" value="{{ form_values['end-date'] }}" required>
+        
+        <label for="period-considered">Period to be considered for success</label>
+        <select id="period-considered" name="period-considered">
+            {% for option in dropdown_options_for_rec['period-considered'] %}
+            <option value="{{ option }}" {% if form_values['period-considered'] == option %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    </div>
+    <input type="submit" value="Generate" id="submit-button">
+    </div>
+</form>
+{% endblock %}   
+
+{% block df %}
+<div class="container">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Analyst</th>
+                <th>Success %</h>
+                <th>Weighted Success %</th>
+                <th>Total Calls</th>
+                <th>Wt Number of Calls</th>
+                <th>Score</th>
+                <!-- <th>Details</th> -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, row in df.iterrows() %}
+            <tr>
+                <th>{{ loop.index }}</th>
+                <td>{{ row.name }}</td>
+                <td>{{ row['Success %']}}</td>
+                <td>{{ row['Weighted Success %'] }}</td>
+                <td>{{ row['Total Calls in Period: ']}}</td>
+                <td>{{ row['Weighted Total Number of Calls'] }}</td>
+
+                <td>{{ row['Score'] }}</td>
+                
+                <!-- <td><button class="eye-button" data-toggle="modal" data-target="#detailsModal" data-analyst="{{ row.name }}">&#128065;</button></td> -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="hover-modal" class="hover-modal"></div>
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div id="analyst-details"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const eyeButtons = document.querySelectorAll('.eye-button');
+        const modal = document.getElementById('detailsModal');
+        const closeBtn = modal.querySelector('.close');
+        const hoverTargets = document.querySelectorAll('.hover-target');
+        const hoverModal = document.getElementById('hover-modal');
+
+        eyeButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const analyst = this.getAttribute('data-analyst');
+                fetch(`/get_analyst_details?analyst=${analyst}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const analystDetails = document.getElementById('analyst-details');
+                        analystDetails.innerHTML = data.html;
+                        modal.style.display = 'block';
+                    });
+            });
+        });
+
+        closeBtn.addEventListener('click', function () {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        hoverTargets.forEach(target => {
+            target.addEventListener('mouseenter', function (e) {
+                const details = this.getAttribute('data-details');
+                fetch(`/get_analyst_company_details?analyst=${details}`)
+                .then(response => response.json())
+                    .then(data => {
+                        const hoverModal = document.getElementById('hover-modal');
+                        hoverModal.innerHTML = data.html;
+                        const rect = this.getBoundingClientRect();
+                        hoverModal.style.left = `${rect.left + window.scrollX}px`;
+                        hoverModal.style.top = `${rect.bottom + window.scrollY}px`;
+                        hoverModal.style.display = 'block';
+                    });
+                
+            });
+            target.addEventListener('mouseleave', function () {
+                // Ensure hover-modal is hidden only if the mouse is not over the modal itself
+                if (!isMouseOverElement(hoverModal)) {
+                    hoverModal.style.display = 'none';
+                }
+            });
+
+           
+        });
+        hoverModal.addEventListener('mouseenter', function () {
+            hoverModal.style.display = 'block'; // Ensure it stays displayed
+        });
+
+        hoverModal.addEventListener('mouseleave', function () {
+            // Ensure hover-modal is hidden only if the mouse is not over any hover-target
+            if (!isMouseOverAnyHoverTarget()) {
+                hoverModal.style.display = 'none';
+            }
+        });
+
+        // Function to check if the mouse is over the hover-modal
+        function isMouseOverElement(element) {
+            const rect = element.getBoundingClientRect();
+            return (
+                event.clientX >= rect.left &&
+                event.clientX <= rect.right &&
+                event.clientY >= rect.top &&
+                event.clientY <= rect.bottom
+            );
+        }
+
+        // Function to check if the mouse is over any hover-target
+        function isMouseOverAnyHoverTarget() {
+            for (const target of hoverTargets) {
+                const rect = target.getBoundingClientRect();
+                if (
+                    event.clientX >= rect.left &&
+                    event.clientX <= rect.right &&
+                    event.clientY >= rect.top &&
+                    event.clientY <= rect.bottom
+                ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    });
+</script>
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Stocks Ranking{% endblock %}
+
+{% block navigationbar %}
+<div class="topnav">
+    <a href={{url_for('index')}}>Home</a>
+    <a href={{url_for('analyst')}}>Analyst View</a>
+    <a class = "active" href={{url_for('stocks')}}>Hot Stocks</a>
+    <a href="{{url_for('recommendation')}}">Recommendations</a>
+    <a href="{{url_for('ranker')}}">Rank view</a>
+    <a href="{{url_for('portfolio')}}">My Portfolio</a>
+    <a href="{{url_for('today')}}">Portfolio Updates</a>
+    <a href="{{url_for('orders')}}">Orders</a>
+
+
+  </div>
+<div class="container">
+{% endblock %}
+{% block forms %}
+<form action="/generate_stocks_info" method="POST">
+    <label for="start-date">Start Date:</label>
+    <input type="date" id="start-date" name="start-date" value="{{ form_values['start-date'] }}" required>
+    
+    <label for="end-date">End Date:</label>
+    <input type="date" id="end-date" name="end-date" value="{{ form_values['end-date'] }}" required>
+    <input type="submit" value="Generate" id="submit-button">
+</form>
+{% endblock %}
+
+{% block df %}
+<div class="container">
+  <table class="table table-striped">
+      <thead>
+          <tr>
+              <th>S. No.</th>
+              <th>Company</th>
+              <th>Number of calls made</th>
+              <th>Details</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for index, row in df.iterrows() %}
+          <tr>
+              <th>{{loop.index}}</th>
+              <th>{{ row['Company'] }}</th>
+              <td>{{ row['Number of calls made'] }}</td>
+              <td><button class="eye-button" data-toggle="modal" data-target="#detailsModal" data-company="{{ row['Company'] }}">&#128065;</button></td>
+          </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+</div>
+<div id="detailsModal" class="modal">
+  <div class="modal-content">
+      <span class="close">&times;</span>
+      <div id="stock-details"></div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      const eyeButtons = document.querySelectorAll('.eye-button');
+      const modal = document.getElementById('detailsModal');
+      const closeBtn = modal.querySelector('.close');
+
+      eyeButtons.forEach(button => {
+          button.addEventListener('click', function () {
+              const company = encodeURIComponent(this.getAttribute('data-company'));
+              fetch(`/get_stocks_details?company=${company}`)
+                  .then(response => response.json())
+                  .then(data => {
+                      const stockDetails = document.getElementById('stock-details');
+                      stockDetails.innerHTML = data.html;
+                      modal.style.display = 'block';
+                  });
+          });
+      });
+
+      closeBtn.addEventListener('click', function () {
+          modal.style.display = 'none';
+      });
+
+      window.addEventListener('click', function (event) {
+          if (event.target === modal) {
+              modal.style.display = 'none';
+          }
+      });
+
+  });
+</script>
+{% endblock %}
+</div>
+
