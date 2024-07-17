@@ -7,6 +7,7 @@ import plotly.graph_objs as go
 import urllib.parse
 import io
 
+
 app = Flask(__name__)
 app.secret_key = 'koinahibtayega'  # Needed to encrypt session data
 # Global definition of l1, analysts, and company data to ensure they are loaded only once, saving time
@@ -364,8 +365,10 @@ def show_full_rec_table():
     global company_data
     global recommendation_df
     global form_values_rec
-
-    rank_consider=form_values_rec['rank-consider']
+    if rank_consider in form_values_rec:
+        rank_consider=form_values_rec['rank-consider']
+    else:
+        rank_consider=='yes'
 
     wtcon=True if rank_consider=="yes" else False
     return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)

@@ -5,6 +5,7 @@ import yfinance as yf
 from util import convert_date, revert_indian_number_format, format_numbers_to_indian_system
 from data import Data
 from update import UpdateCalls,historicData
+import os
 '''
 main.py file with the functions to be used with different paths and triggers in app.py
 
@@ -24,24 +25,32 @@ sort_data_frame: sorts the present dataframe with the passed value, returns the 
 
 
 def load_data():
-
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
     #Path to the "ToBeIgnored" CSV file
-    fpath = r'E:\python\ToBeIgnored.csv' 
+    #fpath = r'E:\python\ToBeIgnored.csv'
+    fpath = os.path.join(parent_dir,'csv_data','ToBeIgnored.csv')
     #Path to list of unique analysts
-    fpathanalysts=r'E:\python\UniqueAnalysts1.csv'
+    #fpathanalysts=r'E:\python\UniqueAnalysts1.csv'
+    fpathanalysts=os.path.join(parent_dir,'csv_data','UniqueAnalysts1.csv')
     #path to the Calls data CSV
     # old file calls_data_file_path = r'E:\python\UpdatedCallsWithRecoPriceAndTickers.csv' 
-    calls_data_file_path = r'E:\python\CallsWithUpdatedUpside.csv'
+    #calls_data_file_path = r'E:\python\CallsWithUpdatedUpside.csv'
+    calls_data_file_path=os.path.join(parent_dir,'csv_data','CallsWithUpdatedUpside.csv')
     #Historic stocks data CSV file path
     # old file historic_company_data_file_path = r'E:\python\HistoricDataWithCompanyAgain.csv'
-    historic_company_data_file_path = r'E:\python\HistoricDataFrom2018.csv'
-    portfolio_path=r'E:\python\StocksPortfolio.csv'
+   # historic_company_data_file_path = r'E:\python\HistoricDataFrom2018.csv'
+    historic_company_data_file_path=os.path.join(parent_dir,'csv_data','HistoricDataFrom2018.csv')
+    #portfolio_path=r'E:\python\StocksPortfolio.csv'
+    portfolio_path=os.path.join(parent_dir,'csv_data','StocksPortfolio.csv')
     df_for_analysts=pd.read_csv(fpathanalysts)
     df = pd.read_csv(fpath)
     calls_df = pd.read_csv(calls_data_file_path)
     history_df = pd.read_csv(historic_company_data_file_path)
-    history_orders_path=r'E:\python\HistoryOrders.csv'
-    stocks_track_path=r'E:\python\TrackingStocks.csv'
+    #history_orders_path=r'E:\python\HistoryOrders.csv'
+    history_orders_path=os.path.join(parent_dir,'csv_data','HistoryOrders.csv')
+    #stocks_track_path=r'E:\python\TrackingStocks.csv'
+    stocks_track_path = os.path.join(parent_dir,'csv_data','TrackingStocks.csv')
 
     
 
@@ -306,7 +315,11 @@ def hot_stocks_backend(start_date,end_date,calls_by_company, l1):
     return stocks_details_df,calls_by_company_stocks
 
 def recommended_stocks(mcap,upside_filter,upside_factor_weight,start_date, end_date, dur, analyst_dfs, company_data,rank_consider,sort_by,priority,period,num,calls_df,l1,analyst_rank):
-    dfm=pd.read_csv(r'E:\python\WithMarketCap.csv')
+    #dfm=pd.read_csv(r'E:\python\WithMarketCap.csv')
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    path_needed=os.path.join(parent_dir,'csv_data','WithMarketCap.csv')
+    dfm=pd.read_csv(path_needed)
     dfm.set_index('Company', inplace=True)
     dfm=dfm.transpose()
     dict1=dfm.to_dict()
@@ -626,7 +639,11 @@ def rankgen(start_date, end_date, dur, analyst_dfs, company_data, l1,analyst_ran
 
 
 def return_ltp(company):
-    df=pd.read_csv(r'E:\python\CompanyMasterUpdate.csv')
+    #df=pd.read_csv(r'E:\python\CompanyMasterUpdate.csv')
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    path_needed=os.path.join(parent_dir,'csv_data','CompanyMasterUpdate.csv')
+    df=pd.read_csv(path_needed)
     ticker=df[df['Company']==company]['Ticker'].iloc[-1]
     ticker_info = yf.Ticker(ticker)
     data = ticker_info.history(period='1d')
@@ -638,8 +655,12 @@ def portfolio_updates(portfolio_path):
     update_df=pd.DataFrame(columns=['Remarks'])
     dfp=pd.read_csv(portfolio_path)
     UpdateCalls()
-    csv_file_path = r'E:\python\CallsWithUpdatedUpside.csv'
-    df=pd.read_csv(csv_file_path)
+    #csv_file_path = r'E:\python\CallsWithUpdatedUpside.csv'
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    path_needed=os.path.join(parent_dir,'csv_data','CallsWithUpdatedUpside.csv')
+    df=pd.read_csv(path_needed)
+    #df=pd.read_csv(csv_file_path)
     df['Date']=df['Date'].apply(convert_date)
     df=df[df['Date']>=(datetime.date.today()-datetime.timedelta(days=4))]
     comp=df['Company'].unique().tolist()

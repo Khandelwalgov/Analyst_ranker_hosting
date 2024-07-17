@@ -11,6 +11,11 @@ import datetime
 import yfinance as yf
 import pandas as pd
 from util import convert_date
+import os
+from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.firefox.service import Service
+
+
 def UpdateCalls():
     url = 'https://trendlyne.com/research-reports/all/'
 
@@ -106,20 +111,40 @@ def UpdateCalls():
         except Exception as e:
             return False
         
-    csv_file_path = r'E:\python\CallsWithUpdatedUpside.csv'
+    #csv_file_path = r'E:\python\CallsWithUpdatedUpside.csv'
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    csv_file_path=os.path.join(parent_dir,'csv_data','CallsWithUpdatedUpside.csv')
+    
     columns = ["Advice", "Company", "Target", "Analyst", "Date", "Ticker", "Reco"]
     df = pd.DataFrame(columns=columns)
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--disable-gpu')  
-    driver = webdriver.Chrome(options=chrome_options)
+    # chrome_options = Options()
+    # chrome_options.add_argument('--headless')
+    # chrome_options.add_argument('--disable-gpu')  
+    # driver = webdriver.Chrome(options=chrome_options)
+    # firefox_options = Options()
+    # firefox_options.add_argument('--headless')  # Run in headless mode
+    # firefox_options.add_argument('--disable-gpu')  
+
+    # # Initialize Firefox WebDriver
+    # driver = webdriver.Firefox(executable_path=r"C:\Users\HP\geckodriver-v0.34.0-win32",options=firefox_options)
+    firefox_options = webdriver.FirefoxOptions()
+    firefox_options.add_argument('--headless')  # Example option
+    service = Service(executable_path=GeckoDriverManager().install())
+
+    # Start Firefox WebDriver using GeckoDriverManager
+    driver = webdriver.Firefox(service=service, options=firefox_options)
     df1 = pd.read_csv(csv_file_path)
     df1['Date'] = df1['Date'].apply(convert_date)
     df1 = df1.sort_values(by='Date', ascending=True)
     from_date = df1.iloc[-1]["Date"]
     till_company=df1.iloc[-1]["Company"]
     till_analyst=df1.iloc[-1]["Analyst"]
-    dfm=pd.read_csv(r'E:\python\CompanyMasterUpdate.csv')
+    #dfm=pd.read_csv(r'E:\python\CompanyMasterUpdate.csv')
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    path_needed=os.path.join(parent_dir,'csv_data','CompanyMasterUpdate.csv')
+    dfm=pd.read_csv(path_needed)
     dfm.set_index('Company', inplace=True)
     dfm=dfm.transpose()
     dict1=dfm.to_dict()
@@ -148,8 +173,13 @@ def UpdateCalls():
 
 
 def historicData():
-    dfsu=pd.read_csv(r'E:\python\CompanyMasterUpdate.csv')
-    csv_file_path = r'E:\python\HistoricDataFrom2018.csv'
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    csv_file_path=os.path.join(parent_dir,'csv_data','HistoricDataFrom2018.csv')
+    company_master_path=os.path.join(parent_dir,'csv_data','HistoricDataFrom2018.csv')
+    #dfsu=pd.read_csv(r'E:\python\CompanyMasterUpdate.csv')
+    dfsu=pd.read_csv(company_master_path)
+    #csv_file_path = r'E:\python\HistoricDataFrom2018.csv'
     count =0
     df1=pd.read_csv(csv_file_path)
     from_date = str(convert_date(df1.iloc[-1]['Date'])+datetime.timedelta(days=1))
