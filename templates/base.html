@@ -33,5 +33,24 @@
         {% block df %}
         {% endblock %}
     </div>
+<script>
+    // Add this script to your HTML or JS file
+window.addEventListener('unload', function(event) {
+    // Perform logout action here
+    fetch('/logout', {
+        method: 'POST',  // Assuming logout is handled via POST request
+        credentials: 'same-origin'  // Ensure cookies (session) are sent
+    })
+    .then(response => {
+        // Handle response if needed
+        console.log('User logged out on tab close');
+    })
+    .catch(error => {
+        // Handle error if needed
+        console.error('Error logging out on tab close:', error);
+    });
+});
+
+</script>
 </body>
 </html>
