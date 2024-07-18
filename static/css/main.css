@@ -427,13 +427,13 @@ th[title]:hover:after {
 }
 
 .alert-warning {
-  color: #8a6d3b;
-  background-color: #fcf8e3;
+  color: black;
+  background-color: #20bb37;
   border-color: #faebcc;
 }
 
 .alert-danger {
-  color: #a94442;
-  background-color: #f2dede;
+  color: white;
+  background-color: red;
   border-color: #ebccd1;
 }

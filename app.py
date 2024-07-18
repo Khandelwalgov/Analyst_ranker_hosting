@@ -107,9 +107,10 @@ def signup():
                         writer = csv.writer(f)
                         writer.writerow(['Company', 'Buy Date', 'Sell Date', 'Target', 'Buy Price', 'Sell Price', 'Quantity', 'Received Return'])
 
-                    flash('User added successfully and directory with CSV files created.')
+                    flash('User added successfully and directory with CSV files created.','success')
                 #flash('User Added successfully','success')
                 print('User Added successfully')
+                redirect(url_for('login'))
             else:
                 flash('Email already exists', 'danger')
                 print('Email already exists')
