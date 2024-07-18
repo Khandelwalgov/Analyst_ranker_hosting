@@ -24,7 +24,7 @@ sort_data_frame: sorts the present dataframe with the passed value, returns the 
 
 
 
-def load_data():
+def load_data(user):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
     #Path to the "ToBeIgnored" CSV file
@@ -42,15 +42,15 @@ def load_data():
    # historic_company_data_file_path = r'E:\python\HistoricDataFrom2018.csv'
     historic_company_data_file_path=os.path.join(parent_dir,'csv_data','HistoricDataFrom2018.csv')
     #portfolio_path=r'E:\python\StocksPortfolio.csv'
-    portfolio_path=os.path.join(parent_dir,'csv_data','StocksPortfolio.csv')
+    portfolio_path=os.path.join(parent_dir,'csv_data',f'User{user}csv_data','StocksPortfolio.csv')
     df_for_analysts=pd.read_csv(fpathanalysts)
     df = pd.read_csv(fpath)
     calls_df = pd.read_csv(calls_data_file_path)
     history_df = pd.read_csv(historic_company_data_file_path)
     #history_orders_path=r'E:\python\HistoryOrders.csv'
-    history_orders_path=os.path.join(parent_dir,'csv_data','HistoryOrders.csv')
+    history_orders_path=os.path.join(parent_dir,'csv_data',f'User{user}csv_data','HistoryOrders.csv')
     #stocks_track_path=r'E:\python\TrackingStocks.csv'
-    stocks_track_path = os.path.join(parent_dir,'csv_data','TrackingStocks.csv')
+    stocks_track_path = os.path.join(parent_dir,'csv_data',f'User{user}csv_data','TrackingStocks.csv')
 
     
 

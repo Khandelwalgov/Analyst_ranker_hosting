@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Analysts Ranking{% endblock %}
 
 {% block navigationbar %}
 <div class="topnav">
@@ -10,34 +10,33 @@
     <a href="{{url_for('recommendation')}}">Recommendations</a>
     <a href="{{url_for('ranker')}}">Rank view</a>
     <a href="{{url_for('portfolio')}}">My Portfolio</a>
-    <a class = "active" href="{{url_for('today')}}">Portfolio Updates</a>
+    <a href="{{url_for('today')}}">Portfolio Updates</a>
     <a href="{{url_for('orders')}}">Orders</a>
-    <a href="{{url_for('login')}}">Login</a>
+    <a class = "active" href="{{url_for('login')}}">Login</a>
     <a href="{{url_for('signup')}}">Sign Up</a>
     <a href ="{{url_for('logout')}}">Logout</a>
+
 
     </div>
 <div class="container">
 {% endblock %}
+
 {% block forms %}
+
+    <form method="POST" action="{{ url_for('login') }}">
+        {{ form.hidden_tag()}}
+        {{form.username.label}}
+        {{ form.username()}}
+        <br/>
+        {{form.password_hash.label}}
+        {{ form.password_hash()}}
+        <br/>
+        {{form.submit()}}
+
+    </form>
 
 {% endblock %}   
 
 {% block df %}
-<div class="container">
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Updates</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for index, row in df.iterrows() %}
-            <tr>
-                <td>{{row['Remarks']}}</th>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+
 {% endblock %}

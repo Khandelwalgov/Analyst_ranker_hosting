@@ -5,7 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 import time
-from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import datetime
 import yfinance as yf
@@ -14,10 +14,50 @@ from util import convert_date
 import os
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.firefox.service import Service
+import tarfile
+import zipfile
+import platform
+import requests
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
 
 
 def UpdateCalls():
     url = 'https://trendlyne.com/research-reports/all/'
+
+    def download_geckodriver():
+        system = platform.system().lower()
+        machine = platform.machine().lower()
+
+        if system == "windows":
+            geckodriver_url = "https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-win64.zip"
+            geckodriver_zip_path = "geckodriver.zip"
+            extract_path = "geckodriver"
+        elif system == "linux" and machine == "aarch64":
+            geckodriver_url = "https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux-aarch64.tar.gz"
+            geckodriver_zip_path = "geckodriver.tar.gz"
+            extract_path = "geckodriver"
+        else:
+            raise Exception(f"Unsupported platform: {system} {machine}")
+
+        # Download Geckodriver
+        response = requests.get(geckodriver_url)
+        with open(geckodriver_zip_path, 'wb') as file:
+            file.write(response.content)
+
+        # Extract Geckodriver
+        if system == "windows":
+            with zipfile.ZipFile(geckodriver_zip_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_path)
+            geckodriver_path = os.path.join(extract_path, "geckodriver.exe")
+        else:
+            with tarfile.open(geckodriver_zip_path) as tar_ref:
+                tar_ref.extractall(extract_path)
+            geckodriver_path = os.path.join(extract_path, "geckodriver")
+            os.chmod(geckodriver_path, 0o755)
+
+        return geckodriver_path
+
 
     def keep(till_company,till_analyst,csv_file_path, from_date, df, driver,dict1):  
         go_on = True
@@ -128,9 +168,12 @@ def UpdateCalls():
 
     # # Initialize Firefox WebDriver
     # driver = webdriver.Firefox(executable_path=r"C:\Users\HP\geckodriver-v0.34.0-win32",options=firefox_options)
+    geckodriver_path = download_geckodriver()
     firefox_options = webdriver.FirefoxOptions()
     firefox_options.add_argument('--headless')  # Example option
-    service = Service(executable_path=GeckoDriverManager().install())
+    # service = Service(executable_path=GeckoDriverManager().install())
+    service = Service(executable_path=geckodriver_path)
+
 
     # Start Firefox WebDriver using GeckoDriverManager
     driver = webdriver.Firefox(service=service, options=firefox_options)

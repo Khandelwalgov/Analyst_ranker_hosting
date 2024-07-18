@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Analysts Ranking{% endblock %}
+
+{% block navigationbar %}
+<div class="topnav">
+    <a href={{url_for('index')}}>Home</a>
+    <a href={{url_for('analyst')}}>Analyst View</a>
+    <a href={{url_for('stocks')}}>Hot Stocks</a>
+    <a href="{{url_for('recommendation')}}">Recommendations</a>
+    <a href="{{url_for('ranker')}}">Rank view</a>
+    <a href="{{url_for('portfolio')}}">My Portfolio</a>
+    <a href="{{url_for('today')}}">Portfolio Updates</a>
+    <a href="{{url_for('orders')}}">Orders</a>
+    <a class = "active" href="{{url_for('login')}}">Login</a>
+    <a href="{{url_for('signup')}}">Sign Up</a>
+    <a href ="{{url_for('logout')}}">Logout</a>
+
+    </div>
+<div class="container">
+{% endblock %}
+
+{% block forms %}
+
+    <form method="POST" action="{{ url_for('signup') }}">
+        {{ form.hidden_tag()}}
+        {{form.name.label}}
+        {{ form.name()}}
+        <br/>
+        {{form.username.label}}
+        {{ form.username()}}
+        <br/>
+        {{form.email.label}}
+        {{ form.email()}}
+        <br/>
+        {{form.password_hash.label}}
+        {{ form.password_hash()}}
+        <br/>
+        {{form.password_hash2.label}}
+        {{ form.password_hash2()}}
+        <br/>
+        {{form.submit()}}
+        
+    </form>
+
+{% endblock %}   
+
+{% block df %}
+
+{% endblock %}

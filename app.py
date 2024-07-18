@@ -6,11 +6,145 @@ import datetime
 import plotly.graph_objs as go
 import urllib.parse
 import io
-
-
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin,login_user,LoginManager,login_required,logout_user,current_user
+from werkzeug.security import generate_password_hash,check_password_hash
+from flask_wtf import FlaskForm
+from wtforms import StringField,SubmitField, PasswordField,BooleanField,ValidationError
+from wtforms.validators import DataRequired,EqualTo,Length
+import os
+import csv
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///users.sqlite3'
+
 app.secret_key = 'koinahibtayega'  # Needed to encrypt session data
 # Global definition of l1, analysts, and company data to ensure they are loaded only once, saving time
+
+db = SQLAlchemy(app)
+login_manager=LoginManager()
+login_manager.init_app(app)
+login_manager.login_view='login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return users.query.get(int(user_id))
+
+class users(db.Model,UserMixin):
+    _id =db.Column("id",db.Integer,primary_key=True)
+    name=db.Column(db.String(200),nullable =False)
+    username=db.Column(db.String(20),unique=True,nullable=False)
+    email=db.Column(db.String(200),unique=True,nullable=False)
+    password_hash=db.Column(db.String(128))
+
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute!')
+    @password.setter
+    def password(self,password):
+        self.password_hash=generate_password_hash(password)
+    
+    def verify_password(self,password):
+        return check_password_hash(self.password_hash,password)
+
+    def get_id(self):
+        return self._id
+    
+
+# Create form class
+
+class LogInForm(FlaskForm):
+    username = StringField("Name:",validators=[DataRequired()])
+    password_hash= PasswordField('Password',validators=[DataRequired()])
+
+    submit = SubmitField("Submit")
+class SignUpForm(FlaskForm):
+    name=StringField("Name",validators=[DataRequired()])
+    username=StringField("Username",validators=[DataRequired()])
+    email=StringField("Email",validators=[DataRequired()])
+    password_hash=PasswordField('Password',validators=[DataRequired(),EqualTo('password_hash2',message='Passwords must match!')])
+    password_hash2=PasswordField('Confirm Password',validators=[DataRequired()])
+    submit = SubmitField("Sign Up")
+@app.route('/signup',methods=['GET','POST'])
+def signup():
+    name = None
+    form = SignUpForm()
+     
+    if form.validate_on_submit():
+        user = users.query.filter_by(username=form.username.data).first()
+        if user is None:
+            user = users.query.filter_by(email=form.email.data).first()
+            if user is None:
+                hashed_pwd=generate_password_hash(form.password_hash.data)
+                user=users(name=form.name.data,email=form.email.data,username=form.username.data,password_hash=hashed_pwd)
+                db.session.add(user)
+                db.session.commit()
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                parent_dir = os.path.dirname(current_dir)
+                dir_to_be_used=os.path.join(parent_dir,'csv_data')
+                user_dir = f'User{user._id}csv_data'
+                dir_to_create = os.path.join(dir_to_be_used, user_dir)
+
+                # Create the directory if it doesn't exist
+                if not os.path.exists(dir_to_create):
+                    os.makedirs(dir_to_create)
+
+                    # Create CSV files with headers
+                    stocks_portfolio_csv = os.path.join(dir_to_create, 'StocksPortfolio.csv')
+                    history_orders_csv = os.path.join(dir_to_create, 'HistoryOrders.csv')
+                    tracking_stocks_csv = os.path.join(dir_to_create, 'TrackingStocks.csv')
+
+                    # Write headers to CSV files
+                    with open(stocks_portfolio_csv, 'w', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(['Company', 'Bought Date', 'Price Bought At', 'Target', 'Upside', 'Quantity'])
+
+                    with open(history_orders_csv, 'w', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(['Date', 'Action', 'Company', 'Product', 'Quantity', 'Price'])
+
+                    with open(tracking_stocks_csv, 'w', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(['Company', 'Buy Date', 'Sell Date', 'Target', 'Buy Price', 'Sell Price', 'Quantity', 'Received Return'])
+
+                    flash('User added successfully and directory with CSV files created.')
+                #flash('User Added successfully','success')
+                print('User Added successfully')
+            else:
+                flash('Email already exists', 'danger')
+                print('Email already exists')
+        else:
+            flash('Username already exists', 'danger')
+            print('Username already exists')
+
+    return render_template('signup.html',form=form,name=name)
+
+@app.route('/login',methods=['GET','POST'])
+def login():
+    
+    form = LogInForm()
+    if form.validate_on_submit():
+        user = users.query.filter_by(username=form.username.data).first()
+        if user and user.verify_password(form.password_hash.data):
+            login_user(user)
+            session['user']=user._id
+            flash('Login successful', 'success')
+            print('Login successful')
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid username or password', 'danger')
+            print('Invalid username or password')
+    return render_template('login.html', form=form)
+
+@app.route('/logout',methods=['GET','POST'])
+@login_required
+def logout():
+    session.clear()  
+    logout_user()
+    flash("You have been logged out successfully")
+    print('You have been logged out successfully')
+    return(redirect(url_for('index')))
+
 analyst_rank={}
 # Global definition of final_df to make sorting easier as it won't have to be processed again every time sorting has to be done
 columns = ['Total Calls in Period: ', 'Total Successes in the period: ', 'Success %']
@@ -23,16 +157,13 @@ unique_company={}
 calls_to_be_processed= {}
 rec_all_calls={}
 calls_by_company_stocks={}
-stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df = load_data()
 dropdown_options = {
 'period': ['1Y', '6M', '3M'],
-'analyst': list_of_unique_analysts
     }
 calls_df=pd.DataFrame(columns=columns)
 # Default values for the forms
 date_to_be_considered =datetime.date.today()-datetime.timedelta(days=365)
 dropdown_options_portfolio_gen={
-    'Company':company_list,
 }
 default_form_values = {
     'start-date': '2018-01-01',
@@ -77,10 +208,11 @@ dropdown_options_for_rec={
 }
 #Home page route 
 @app.route('/')
+@login_required
 def index():
+    global dropdown_options
     global stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df, dropdown_options
-    session.clear()  
-    global default_form_values
+    global default_form_values,dropdown_options_portfolio_gen
     global final_df
     date_to_be_considered =datetime.date.today()-datetime.timedelta(days=365)
     default_form_values = {
@@ -89,16 +221,17 @@ def index():
     'period': '1Y',
     'analyst': 'All'
     }
-    stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df = load_data()
-    dropdown_options = {
-    'period': ['1Y', '6M', '3M'],
-    'analyst': list_of_unique_analysts
-    }
+    user=session['user']
+    stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df = load_data(user)
+    dropdown_options['analyst']= list_of_unique_analysts
+    dropdown_options_portfolio_gen['Company']=company_list
+    
     session['form_values'] = default_form_values
     return render_template('index.html')
 
 #Analyst view
 @app.route('/analyst',methods=['GET', 'POST'])
+@login_required
 def analyst():
     
     if 'form_values' not in session:
@@ -121,6 +254,7 @@ def analyst():
     return render_template('analyst.html',df=final_df, form_values=form_values, dropdown_options=dropdown_options)
 
 @app.route('/generate_data', methods=['POST'])
+@login_required
 def generate_data():
     global calls_to_be_processed
     global final_df
@@ -142,6 +276,7 @@ def generate_data():
     return render_template('analyst.html', df=final_df, form_values=form_values, dropdown_options=dropdown_options)
 
 @app.route('/sort_table', methods=['POST'])
+@login_required
 def sort_table():
     global final_df
     if request.method == 'POST':
@@ -152,6 +287,7 @@ def sort_table():
 
 # To return analyst wise calls to modal
 @app.route('/get_analyst_details')
+@login_required
 def get_analyst_details():
     analyst = request.args.get('analyst')
     analyst = urllib.parse.unquote(analyst)
@@ -172,6 +308,7 @@ def get_analyst_details():
 
 #To return analyst wise company summaries
 @app.route('/get_analyst_company_details')
+@login_required
 def get_analyst_company_details():
     analyst = request.args.get('analyst')
     analyst = urllib.parse.unquote(analyst)
@@ -183,11 +320,13 @@ def get_analyst_company_details():
 
 #To stocks.html
 @app.route('/stocks')
+@login_required
 def stocks():
     global default_form_values_stock
     global stocks_df
     return render_template('stocks.html',df=stocks_df,form_values =default_form_values_stock)
 @app.route('/generate_stocks_info',methods=['POST'])
+@login_required
 def generate_stocks_info():
     global stocks_df
     global calls_by_company_stocks
@@ -203,6 +342,7 @@ def generate_stocks_info():
     return render_template('stocks.html',df=stocks_df,form_values=form_values,)
     
 @app.route('/get_stocks_details')
+@login_required
 def get_stocks_details():
     global calls_by_company_stocks
     company = request.args.get('company')
@@ -223,6 +363,7 @@ def get_stocks_details():
 
 #To recommendation.html
 @app.route('/recommendation')
+@login_required
 def recommendation():
     global recommendation_df
     # global rec_all_calls
@@ -246,6 +387,7 @@ def recommendation():
     wtcon=True
     return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=default_form_values_rec,wtcon=wtcon)
 @app.route('/generate_rec',methods=['POST'])
+@login_required
 def generate_rec():
     global rec_all_calls
     global dropdown_options_for_rec
@@ -292,6 +434,7 @@ def generate_rec():
  
 
 @app.route('/get_stocks_details_for_rec')
+@login_required
 def get_stocks_details_for_rec():
     global rec_all_calls
     company = request.args.get('company')
@@ -313,6 +456,7 @@ def get_stocks_details_for_rec():
     return jsonify({'html': 'No details available for this company.'})
 
 @app.route('/generate_stock_graph')
+@login_required
 def generate_stock_graph():
     company = request.args.get('company')
     company = urllib.parse.unquote(company)
@@ -356,6 +500,7 @@ def generate_stock_graph():
     return jsonify({'graph': ''})
 
 @app.route('/show_full_table',methods=['POST'])
+@login_required
 def show_full_rec_table():
     global rec_all_calls
     global dropdown_options_for_rec
@@ -373,11 +518,13 @@ def show_full_rec_table():
     wtcon=True if rank_consider=="yes" else False
     return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
 @app.route('/ranker')
+@login_required
 def ranker():
     global rank_df
     return render_template('ranker.html',df=rank_df,dropdown_options_for_rec=dropdown_options_for_rec,form_values=default_form_values_ranker)
 
 @app.route('/generate_rank',methods=['POST'])
+@login_required
 def generate_rank():
     global analyst_rank
     global analyst_dfs
@@ -395,6 +542,7 @@ def generate_rank():
     df= pd.DataFrame(list(dict1.items()),columns=['Analyst','Score'])
     return render_template('ranker.html',df=rank_df,dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rank)
 @app.route('/portfolio')
+@login_required
 def portfolio():
     global dropdown_options_portfolio_gen,portfolio_path,stocks_track_path
     df=pd.read_csv(portfolio_path)
@@ -444,6 +592,7 @@ def portfolio():
     track_df['Current Return']=current_return
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
 @app.route('/buy_from_portfolio',methods=['POST'])
+@login_required
 def buy_from_portfolio():
     global dropdown_options_portfolio_gen,portfolio_path,history_orders_path,stocks_track_path
     recommendation_sell={}
@@ -503,6 +652,7 @@ def buy_from_portfolio():
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
 
 @app.route('/add_csv_portfolio',methods=['POST'])
+@login_required
 def add_to_portfolio():
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'csv'
@@ -629,6 +779,7 @@ def add_to_portfolio():
     track_df['Current Return']=current_return
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
 @app.route('/sell_track_from_portfolio',methods=['POST'])
+@login_required
 def sell_track_from_portfolio():
     global history_orders_path,portfolio_path,stocks_track_path
     company = request.form['company']
@@ -702,6 +853,7 @@ def sell_track_from_portfolio():
 
 
 @app.route('/buy_from_tracking_portfolio',methods=['POST'])
+@login_required
 def buy_from_tracking_portfolio():
     global stocks_track_path,portfolio_path,dropdown_options_portfolio_gen,history_orders_path
     recommendation_sell={}
@@ -780,6 +932,7 @@ def buy_from_tracking_portfolio():
 
 
 @app.route('/delete_row', methods=['POST'])
+@login_required
 def delete_row():
     global stocks_track_path
     global dropdown_options_portfolio_gen ,portfolio_path
@@ -850,6 +1003,7 @@ def delete_row():
     
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
 @app.route('/add_to_portfolio_from_rec',methods=['POST'])
+@login_required
 def add_to_portfolio_from_rec():
     global portfolio_path
     company=request.form['company']
@@ -882,15 +1036,15 @@ def add_to_portfolio_from_rec():
     else:
         temp_df=recommendation_df.head(int(num))
         return render_template('recommendation.html',df=temp_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
-@app.route('/sell_from_portfolio_from_rec',methods=['POST'])
-def sell_from_portfolio_from_rec():
-    return
+
 @app.route('/today')
+@login_required
 def today():
     df=portfolio_updates(portfolio_path)
     return render_template('today.html',df=df)
 
 @app.route('/orders')
+@login_required
 def orders():
     global history_orders_path
     df=pd.read_csv(history_orders_path)
