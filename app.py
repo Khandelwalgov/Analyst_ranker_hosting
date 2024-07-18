@@ -54,7 +54,7 @@ class users(db.Model,UserMixin):
 # Create form class
 
 class LogInForm(FlaskForm):
-    username = StringField("Name:",validators=[DataRequired()])
+    username = StringField("Username",validators=[DataRequired()])
     password_hash= PasswordField('Password',validators=[DataRequired()])
 
     submit = SubmitField("Submit")
