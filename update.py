@@ -5,7 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 import time
-# from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import datetime
 import yfinance as yf
@@ -25,38 +25,38 @@ from selenium.webdriver.firefox.options import Options
 def UpdateCalls():
     url = 'https://trendlyne.com/research-reports/all/'
 
-    def download_geckodriver():
-        system = platform.system().lower()
-        machine = platform.machine().lower()
+    # def download_geckodriver():
+    #     system = platform.system().lower()
+    #     machine = platform.machine().lower()
 
-        if system == "windows":
-            geckodriver_url = "https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-win64.zip"
-            geckodriver_zip_path = "geckodriver.zip"
-            extract_path = "geckodriver"
-        elif system == "linux" and machine == "aarch64":
-            geckodriver_url = "https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux-aarch64.tar.gz"
-            geckodriver_zip_path = "geckodriver.tar.gz"
-            extract_path = "geckodriver"
-        else:
-            raise Exception(f"Unsupported platform: {system} {machine}")
+    #     if system == "windows":
+    #         geckodriver_url = "https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-win64.zip"
+    #         geckodriver_zip_path = "geckodriver.zip"
+    #         extract_path = "geckodriver"
+    #     elif system == "linux" and machine == "aarch64":
+    #         geckodriver_url = "https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux-aarch64.tar.gz"
+    #         geckodriver_zip_path = "geckodriver.tar.gz"
+    #         extract_path = "geckodriver"
+    #     else:
+    #         raise Exception(f"Unsupported platform: {system} {machine}")
 
-        # Download Geckodriver
-        response = requests.get(geckodriver_url)
-        with open(geckodriver_zip_path, 'wb') as file:
-            file.write(response.content)
+    #     # Download Geckodriver
+    #     response = requests.get(geckodriver_url)
+    #     with open(geckodriver_zip_path, 'wb') as file:
+    #         file.write(response.content)
 
-        # Extract Geckodriver
-        if system == "windows":
-            with zipfile.ZipFile(geckodriver_zip_path, 'r') as zip_ref:
-                zip_ref.extractall(extract_path)
-            geckodriver_path = os.path.join(extract_path, "geckodriver.exe")
-        else:
-            with tarfile.open(geckodriver_zip_path) as tar_ref:
-                tar_ref.extractall(extract_path)
-            geckodriver_path = os.path.join(extract_path, "geckodriver")
-            os.chmod(geckodriver_path, 0o755)
+    #     # Extract Geckodriver
+    #     if system == "windows":
+    #         with zipfile.ZipFile(geckodriver_zip_path, 'r') as zip_ref:
+    #             zip_ref.extractall(extract_path)
+    #         geckodriver_path = os.path.join(extract_path, "geckodriver.exe")
+    #     else:
+    #         with tarfile.open(geckodriver_zip_path) as tar_ref:
+    #             tar_ref.extractall(extract_path)
+    #         geckodriver_path = os.path.join(extract_path, "geckodriver")
+    #         os.chmod(geckodriver_path, 0o755)
 
-        return geckodriver_path
+    #     return geckodriver_path
 
 
     def keep(till_company,till_analyst,csv_file_path, from_date, df, driver,dict1):  
@@ -111,7 +111,7 @@ def UpdateCalls():
                     td_element = row.find('td', class_="rightAlgn positive invisible-details-control")
                     if td_element:
                         reco = td_element.contents[0].strip()
-            
+
                 target_td_list = row.find_all('td', class_='rightAlgn invisible-details-control')
                 if len(target_td_list) > 1:
                     target = target_td_list[1].text.strip()
@@ -135,6 +135,7 @@ def UpdateCalls():
                             upside = None  # or handle division by zero cas
                     market_cap=dict1[company]['Market Cap']
                     data.append([advice, company, target, analyst, date, ticker, reco,upside,long_name,market_cap,to_be_taken])
+                    print([advice, company, target, analyst, date, ticker, reco,upside,long_name,market_cap,to_be_taken])
 
         if data:
             
@@ -158,25 +159,37 @@ def UpdateCalls():
     
     columns = ["Advice", "Company", "Target", "Analyst", "Date", "Ticker", "Reco"]
     df = pd.DataFrame(columns=columns)
-    # chrome_options = Options()
-    # chrome_options.add_argument('--headless')
-    # chrome_options.add_argument('--disable-gpu')  
-    # driver = webdriver.Chrome(options=chrome_options)
+
+    system = platform.system().lower()
+    machine = platform.machine().lower()
+
+    if system == "windows":
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-gpu')  
+        driver = webdriver.Chrome(options=chrome_options)
+    elif system == "linux" and machine == "aarch64":
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-gpu')  
+        service = Service(executable_path='/usr/bin/chromedriver')
+        driver = webdriver.Chrome(service=service,options=chrome_options)
+    
     # firefox_options = Options()
     # firefox_options.add_argument('--headless')  # Run in headless mode
     # firefox_options.add_argument('--disable-gpu')  
 
     # # Initialize Firefox WebDriver
     # driver = webdriver.Firefox(executable_path=r"C:\Users\HP\geckodriver-v0.34.0-win32",options=firefox_options)
-    geckodriver_path = download_geckodriver()
-    firefox_options = webdriver.FirefoxOptions()
-    firefox_options.add_argument('--headless')  # Example option
+    # geckodriver_path = download_geckodriver()
+    # firefox_options = webdriver.FirefoxOptions()
+    # firefox_options.add_argument('--headless')  # Example option
     # service = Service(executable_path=GeckoDriverManager().install())
-    service = Service(executable_path=geckodriver_path)
+    # service = Service(executable_path=geckodriver_path)
 
 
     # Start Firefox WebDriver using GeckoDriverManager
-    driver = webdriver.Firefox(service=service, options=firefox_options)
+    # driver = webdriver.Firefox(service=service, options=firefox_options)
     df1 = pd.read_csv(csv_file_path)
     df1['Date'] = df1['Date'].apply(convert_date)
     df1 = df1.sort_values(by='Date', ascending=True)
@@ -242,4 +255,4 @@ def historicData():
                     stock_data.to_csv(csv_file_path, mode='a', header=False, index=False)
                     print(f'Successfully appended {len(stock_data)} rows for {lname} ')
     return
-                
+UpdateCalls()
