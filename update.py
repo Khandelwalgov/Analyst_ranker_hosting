@@ -172,7 +172,7 @@ def UpdateCalls():
         chrome_options = Options()
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--disable-gpu')  
-        service = Service(executable_path='/usr/bin/chromedriver')
+        service = Service(executable_path='/usr/bin/')
         driver = webdriver.Chrome(service=service,options=chrome_options)
     
     # firefox_options = Options()
