@@ -12,14 +12,14 @@ import yfinance as yf
 import pandas as pd
 from util import convert_date
 import os
-from webdriver_manager.firefox import GeckoDriverManager
-from selenium.webdriver.firefox.service import Service
+# from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.chrome.service import Service
 import tarfile
 import zipfile
 import platform
 import requests
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.firefox.options import Options
+# from selenium.webdriver.firefox.service import Service
+# from selenium.webdriver.firefox.options import Options
 
 
 def UpdateCalls():
