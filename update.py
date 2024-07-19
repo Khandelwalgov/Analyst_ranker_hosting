@@ -164,7 +164,9 @@ def UpdateCalls():
     machine = platform.machine().lower()
 
     if system == "windows":
+
         chrome_options = Options()
+        chrome_options.binary_location = "/usr/bin/google-chrome"
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--disable-gpu')  
         driver = webdriver.Chrome(options=chrome_options)
