@@ -110,7 +110,7 @@ def signup():
                     flash('User added successfully and directory with CSV files created.','success')
                 #flash('User Added successfully','success')
                 print('User Added successfully')
-                redirect(url_for('login'))
+                return redirect(url_for('login'))
             else:
                 flash('Email already exists', 'danger')
                 print('Email already exists')
@@ -131,7 +131,7 @@ def login():
             session['user']=user._id
             flash('Login successful', 'success')
             print('Login successful')
-            return redirect(url_for('index'))
+            return redirect(url_for('dashboard'))
         else:
             flash('Invalid username or password', 'danger')
             print('Invalid username or password')
@@ -142,7 +142,7 @@ def login():
 def logout():
     session.clear()  
     logout_user()
-    flash("You have been logged out successfully")
+    flash("You have been logged out successfully",'success')
     print('You have been logged out successfully')
     return(redirect(url_for('index')))
 
@@ -209,8 +209,12 @@ dropdown_options_for_rec={
 }
 #Home page route 
 @app.route('/')
-@login_required
 def index():
+    
+    return render_template('index.html')
+@app.route('/dashboard')
+@login_required
+def dashboard():
     global dropdown_options
     global stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df, dropdown_options
     global default_form_values,dropdown_options_portfolio_gen
@@ -228,8 +232,7 @@ def index():
     dropdown_options_portfolio_gen['Company']=company_list
     
     session['form_values'] = default_form_values
-    return render_template('index.html')
-
+    return render_template('dashboard.html')
 #Analyst view
 @app.route('/analyst',methods=['GET', 'POST'])
 @login_required

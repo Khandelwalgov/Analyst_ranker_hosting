@@ -166,7 +166,7 @@ def UpdateCalls():
     if system == "windows":
 
         chrome_options = Options()
-        chrome_options.binary_location = "/usr/bin/google-chrome"
+      
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--disable-gpu')  
         driver = webdriver.Chrome(options=chrome_options)
@@ -257,4 +257,3 @@ def historicData():
                     stock_data.to_csv(csv_file_path, mode='a', header=False, index=False)
                     print(f'Successfully appended {len(stock_data)} rows for {lname} ')
     return
-UpdateCalls()

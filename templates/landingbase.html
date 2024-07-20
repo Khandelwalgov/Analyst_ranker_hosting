@@ -26,28 +26,15 @@
             {% endif %}
         {% endwith %}
 
-    <div class="topnav">
         {% block navigationbar %}
-        
+
         {% endblock %}
-        <div class="dropdown">
-            <button class="dropbtn">
-                <i class="fas fa-user"></i> Profile 
-                <i class="fa fa-caret-down"></i>
-            </button>
-            <div class="dropdown-content">
-                <a href="{{url_for('logout')}}">Logout</a>
-            </div>
-        </div>
-    </div>
-    <div class="container">
         <div class="form-container">
 
         {% block forms %}
         {% endblock %}
         </div>
-        {% block df %}
-        {% endblock %}
+
     </div>
 <script>
     // Add this script to your HTML or JS file

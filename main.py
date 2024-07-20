@@ -69,6 +69,7 @@ def load_data(user):
     calls_df['Upside']=calls_df['Upside'].round(2)
     unique_analysts = calls_df['Analyst'].unique()
     # Create a dictionary to store DataFrames for each analyst
+    calls_df = calls_df.drop_duplicates(keep=False).reset_index(drop=True)
     analyst_dfs = {analyst: df.reset_index(drop=True) for analyst,df in calls_df.groupby('Analyst')}
 
     # Create a dictionary to store DataFrames for each company

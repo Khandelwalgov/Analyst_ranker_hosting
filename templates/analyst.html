@@ -3,8 +3,7 @@
 {% block title %}Analysts Ranking{% endblock %}
 
 {% block navigationbar %}
-<div class="topnav">
-    <a href={{url_for('index')}}>Home</a>
+    <a href={{url_for('dashboard')}}>Dashboard</a>
     <a class = "active" href={{url_for('analyst')}}>Analyst View</a>
     <a href={{url_for('stocks')}}>Hot Stocks</a>
     <a href="{{url_for('recommendation')}}">Recommendations</a>
@@ -12,13 +11,11 @@
     <a href="{{url_for('portfolio')}}">My Portfolio</a>
     <a href="{{url_for('today')}}">Portfolio Updates</a>
     <a href="{{url_for('orders')}}">Orders</a>
-    <a href="{{url_for('login')}}">Login</a>
-    <a href="{{url_for('signup')}}">Sign Up</a>
-    <a href ="{{url_for('logout')}}">Logout</a>
+    
 
 
-    </div>
-<div class="container">
+
+
 {% endblock %}
 
 
