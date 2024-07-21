@@ -389,6 +389,12 @@ def recommended_stocks(mcap,upside_filter,upside_factor_weight,start_date, end_d
     unique_tickers = [ticker.strip() for ticker in calls_for_rec['Ticker'].unique().tolist()]
     today_str=str(datetime.date.today())
     data_ltp = yf.download(unique_tickers, start=today_str)['Close']
+    xtoday=datetime.date.today()
+    while data_ltp.empty:
+        xtoday= xtoday-datetime.timedelta(days=1)
+        today_str1=str(xtoday)
+        data_ltp = yf.download(unique_tickers, start=today_str1)['Close']
+    
     data_ltp=data_ltp.transpose()
     # dict1={tick:df['Close'] for tick, df in data.groupby('Ticker') }
     # print(dict1)

@@ -1,38 +1,44 @@
-{% extends "landingbase.html" %}
+
+
+ {% extends "landingbase.html" %}
 
 {% block title %}Analysts Ranking{% endblock %}
 
 {% block navigationbar %}
 <div class="topnav">
     <a href={{url_for('index')}}>Home</a>
-
-    </div>
+</div>
 <div class="container">
 {% endblock %}
 
 {% block forms %}
-
-    <form method="POST" action="{{ url_for('signup') }}">
-        {{ form.hidden_tag()}}
-        {{form.name.label}}
-        {{ form.name()}}
-        <br/>
-        {{form.username.label}}
-        {{ form.username()}}
-        <br/>
-        {{form.email.label}}
-        {{ form.email()}}
-        <br/>
-        {{form.password_hash.label}}
-        {{ form.password_hash()}}
-        <br/>
-        {{form.password_hash2.label}}
-        {{ form.password_hash2()}}
-        <br/>
-        {{form.submit()}}
-        
+    <form method="POST" action="{{ url_for('signup') }}" class="custom-form">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.password_hash.label(class="form-label") }}
+            {{ form.password_hash(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.password_hash2.label(class="form-label") }}
+            {{ form.password_hash2(class="form-control") }}
+        </div>
+        <div class="form-group form-submit-group">
+            <p>Already have an account? <strong><a href={{url_for('login')}}>Log in</a></strong></p>
+        </div>
+        <div class="form-group form-submit-group">
+            {{ form.submit(class="form-submit") }}
+        </div>
     </form>
-
-{% endblock %}   
-
-
+{% endblock %}
