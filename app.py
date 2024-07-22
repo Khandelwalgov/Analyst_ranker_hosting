@@ -606,7 +606,7 @@ def buy_from_portfolio():
     company=request.form['company']
     target=request.form['target']
     date=datetime.date.today()
-    ltp=return_ltp(company)
+    ltp=request.form['price_buy']
     upside=round(((float(target)-float(ltp))/float(ltp))*100,2)
     qty=request.form['qty']
     portfolio_data=pd.DataFrame([company,date,ltp,target,upside,qty]).transpose()
@@ -872,7 +872,7 @@ def buy_from_tracking_portfolio():
     quantity = request.form['qty']
     qty=request.form['quantity']
     date=datetime.date.today()
-    ltp=return_ltp(company)
+    ltp=request.form['price_buy']
     upside=round(((float(target)-float(ltp))/float(ltp))*100,2)
     portfolio_data=pd.DataFrame([company,date,ltp,target,upside,quantity]).transpose()
     portfolio_data.to_csv(portfolio_path, mode='a', header=False, index=False)
@@ -1013,7 +1013,7 @@ def add_to_portfolio_from_rec():
     company=request.form['company']
     target=request.form['target']
     date=datetime.date.today()
-    bought_at=return_ltp(company)
+    bought_at=request.form['price_buy']
     upside=request.form['upside']
     qty=request.form['qty']
     portfolio_data=pd.DataFrame([company,date,bought_at,target,upside,qty]).transpose()

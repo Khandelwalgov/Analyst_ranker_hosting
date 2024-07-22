@@ -701,5 +701,3 @@ def portfolio_updates(portfolio_path):
                     
     return update_df
 
-            
-

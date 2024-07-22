@@ -241,7 +241,8 @@
               <td><button class="graph-button" data-company="{{ row.name }}">📈</button></td>
               <td>
                     <form action='/add_to_portfolio_from_rec' method="POST">
-                        <input type="Number" name="qty" id='qty' min ='1' required placeholder="Qty"/>
+                        <input style="width:100px" type="Number" name="price_buy" step ="0.01" required placeholder="Price" value ="{{row['LTP']|replace(',', '')}}"/>
+                        <input style="margin-right: 0px" type="Number" name="qty" id='qty' min ='1' required placeholder="Qty"/>
                         <input type="hidden" name="company" value="{{ row.name }}"/>
                         <input type="hidden" name="target" value="{{ row['Weighted Target'] }}"/>
                         <input type="hidden" name="upside" value="{{row['Weighted Upside Current']}}"/>

@@ -20,8 +20,6 @@ import platform
 import requests
 # from selenium.webdriver.firefox.service import Service
 # from selenium.webdriver.firefox.options import Options
-
-
 def UpdateCalls():
     url = 'https://trendlyne.com/research-reports/all/'
 
@@ -104,11 +102,12 @@ def UpdateCalls():
                 if date and company and analyst and date == from_date and analyst==till_analyst and company==till_company:
                         go_on = False
                         break
-                td_element = row.find('td', class_='rightAlgn negative invisible-details-control')
+                td_element = row.find('td', class_='rightAlgn minorchange invisible-details-control')
+                print(td_element)
                 if td_element:
                     reco = td_element.contents[0].strip()
                 else:
-                    td_element = row.find('td', class_="rightAlgn positive invisible-details-control")
+                    td_element = row.find('td', class_="rightAlgn negative invisible-details-control")
                     if td_element:
                         reco = td_element.contents[0].strip()
 
@@ -135,7 +134,7 @@ def UpdateCalls():
                             upside = None  # or handle division by zero cas
                     market_cap=dict1[company]['Market Cap']
                     data.append([advice, company, target, analyst, date, ticker, reco,upside,long_name,market_cap,to_be_taken])
-                    print([advice, company, target, analyst, date, ticker, reco,upside,long_name,market_cap,to_be_taken])
+                    #print([advice, company, target, analyst, date, ticker, reco,upside,long_name,market_cap,to_be_taken])
 
         if data:
             
@@ -222,19 +221,22 @@ def UpdateCalls():
                 time.sleep(5)
                 if not click_load_more(driver):
                     break
-
+    print(df)
+    df = df.drop_duplicates(keep='first').reset_index(drop=True)
+    print(df)
     df.to_csv(csv_file_path, mode='a', header=False, index=False)
+    df1 = pd.read_csv(csv_file_path)
+    print(df1)
+    df1 = df1.drop_duplicates(keep='first').reset_index(drop=True)
+    df1.to_csv(csv_file_path,index=False)
     driver.quit()
     return
-
-
-
 
 def historicData():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
     csv_file_path=os.path.join(parent_dir,'csv_data','HistoricDataFrom2018.csv')
-    company_master_path=os.path.join(parent_dir,'csv_data','HistoricDataFrom2018.csv')
+    company_master_path=os.path.join(parent_dir,'csv_data','CompanyMasterUpdate.csv')
     #dfsu=pd.read_csv(r'E:\python\CompanyMasterUpdate.csv')
     dfsu=pd.read_csv(company_master_path)
     #csv_file_path = r'E:\python\HistoricDataFrom2018.csv'
