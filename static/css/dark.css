@@ -1,82 +1,65 @@
-/* Base Styles */
 body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #e0e0e0;
-    background-color: #615b5b; /* Dark background color */
-    background-image: linear-gradient(to right, #3c3030, #fc6c6c); /* Dark gradient */
-    min-height: 100vh;
+    margin: 10px;
+    font-family: sans-serif;
+    background-color: #1e1e1e; /* Dark background */
+    background-image: linear-gradient(to right, #1e1e1e, #1e1e1e);
+
+    color: #d4d4d4; /* Light text color */
 }
 
-/* Link Styling */
-a {
-    color: #1e90ff; /* Vibrant blue */
-    text-decoration: none;
+input {
+    height: 15px;
+    background-color: #2d2d2d; /* Dark input background */
+    color: #d4d4d4; /* Light input text */
+    border: 1px solid #3a3a3a; /* Darker border */
 }
 
-a:hover {
-    color: #66c0f4; /* Light blue on hover */
+select {
+    border-style: none;
+    background-color: #3a3a3a; /* Darker select background */
+    color: #d4d4d4; /* Light select text */
+    border-radius: 10px;
+    padding: 7px;
 }
 
-/* Form Container */
-.form-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    max-width: 600px; /* Adjust as needed */
-    margin: auto;
-    padding: 20px;
-    background-color: #333;
-    border-radius: 8px;
-}
-
-/* Form Elements */
-form {
-    width: 100%;
-}
-
-/* Input and Select Styling */
-input, select {
-    color: #e0e0e0;
-    background-color: #444;
-    border: 1px solid #555;
-    border-radius: 5px;
-    padding: 10px;
-    margin: 5px; /* Adjust spacing between elements */
-}
-
-/* Form Row */
-.form-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px; /* Space between form elements */
-}
-
-/* Ensure elements in .form-row don't stretch too much */
-.form-row > div {
-    flex: 1;
-    min-width: 200px; /* Minimum width to avoid too narrow fields */
-}
-
-/* Submit Button Styling */
 #submit-button {
-    color: #ffffff;
-    background-color: #1e90ff; /* Vibrant blue */
-    border: none;
+    color: white;
+    background-color: #2931bf; /* Dark button background */
     border-radius: 25px;
-    padding: 10px 20px; /* Balanced padding */
-    cursor: pointer;
-    margin-top: 10px;
+    padding: 10px;
+    border-style: solid;
+    border-color: #2931bf;
+    height: 35px;
 }
 
 #submit-button:hover {
-    color: #1e90ff;
-    background-color: #ffffff;
-    border: 1px solid #1e90ff;
+    color: white;
+    background-color: #0e0e82; /* Darker hover background */
+    border-style: solid;
+    border-color: #0e0e82;
+    border-radius: 25px;
+    padding: 10px;
+    height: 35px;
 }
 
-/* Modal Styling */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
+}
+
+input, select {
+    margin: 10px;
+}
+
+label {
+    margin: 5px;
+    color: #d4d4d4; /* Light label text */
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -86,120 +69,140 @@ input, select {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
 .modal-content {
-    background-color: #1f1f1f;
-    margin: 10% auto;
+    background-color: #36393e;
+    margin: 15% auto;
     padding: 20px;
-    border: 1px solid #444;
-    width: 80%;
-    max-width: 500px;
-    border-radius: 10px;
+    border: 1px solid #3a3a3a; /* Darker border */
+    width: 95%;
 }
 
 .close {
-    color: #e0e0e0;
+    color: #ffffff;
     float: right;
     font-size: 28px;
     font-weight: bold;
 }
 
-.close:hover,
-.close:focus {
-    color: #1e90ff;
+.close:hover, .close:focus {
+    color: rgb(164, 162, 162);
     text-decoration: none;
     cursor: pointer;
 }
 
-/* Dropdown Menu Styling */
-.dropdown {
-    float: right;
-    overflow: hidden;
-}
-
-.dropdown .dropbtn {
-    font-size: 17px;
-    border: none;
-    outline: none;
-    color: #1e90ff; /* Vibrant blue */
-    padding: 14px 20px;
-    background-color: inherit;
-    cursor: pointer;
-}
-
-.dropdown-content {
+.hover-modal {
     display: none;
     position: absolute;
-    background-color: #333;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1;
-    right: 0;
-    border-radius: 5px;
+    background-color: #36393e;
+    border: 1px solid #3a3a3a; /* Darker border */
+    padding: 10px;
+    z-index: 1000;
+    box-shadow: 0 0 10px rgb(51, 0, 255);
+    max-height: 300px;
+    overflow-y: auto;
 }
 
-.dropdown-content a {
-    color: #e0e0e0;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-    text-align: left;
+#content-style {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0px;
 }
 
-.dropdown-content a:hover {
-    background-color: #444; /* Slightly darker on hover */
+#content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
 }
 
-.dropdown:hover .dropdown-content {
-    display: block;
+.upside-r, .upside-c, .deets, .target {
+    display: none;
 }
 
-.dropdown:hover .dropbtn {
-    background-color: #444; /* Darker background on hover */
+#graphModal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 100;
+    top: 50;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
-/* Table Styling */
+.graph-content {
+    background-color: #36393e;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #3a3a3a; /* Darker border */
+    width: 80%;
+}
+
+/* Base Table Styles */
 .table {
     width: 100%;
     margin-bottom: 1rem;
     border-collapse: collapse;
-    color: #e0e0e0;
+    box-shadow: 0 0 10px rgb(51, 0, 255);
+
 }
 
-.table th,
-.table td {
+.table th, .table td {
     padding: 12px;
     vertical-align: middle;
-    border: 1px solid #444;
+    border: 1px solid #3a3a3a; /* Darker border */
+    overflow: hidden; /* Prevent overflow */
 }
 
+/* Table Header */
 .table thead th {
-    background-color: #1e90ff; /* Vibrant blue */
-    color: #ffffff;
+    background-color: #0026ad;
+    color: white;
     font-weight: bold;
     text-align: left;
-    border-bottom: 2px solid #444;
+    border-bottom: 2px solid #3a3a3a; /* Darker border */
     position: sticky;
     top: 0;
     z-index: 10;
+    opacity: 1;
 }
 
+/* Table Body */
 .table tbody tr:nth-child(odd) {
-    background-color: #1a1a1a;
+    background-color: #1e2124;
 }
 
 .table tbody tr:nth-child(even) {
-    background-color: #2a2a2a;
+    background-color: #36393e;
 }
 
 .table tbody tr:hover {
-    background-color: #333;
+    background-color: #424549;
 }
 
 .table tbody td {
-    color: #e0e0e0;
+    color: white;
+}
+
+/* Table Rows */
+.table tr {
+    transition: background-color 0.3s;
+}
+
+/* Table Borders */
+.table-bordered {
+    border: 2px solid #3a3a3a; /* Darker border */
+}
+
+.table-bordered th, .table-bordered td {
+    border: 1px solid #3a3a3a; /* Darker border */
 }
 
 /* Responsive Table */
@@ -210,165 +213,296 @@ input, select {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Alert Messages */
+/* Ensure Hover Effect */
+th[title] {
+    position: relative;
+    cursor: help;
+}
+
+th[title]:hover:after {
+    content: attr(title);
+    display: block;
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 5px;
+    border-radius: 3px;
+    z-index: 1000;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+#qty {
+    width: 40px;
+}
+
+/* Flash Messages */
 .alert {
     padding: 15px;
     margin-bottom: 20px;
     border: 1px solid transparent;
     border-radius: 4px;
-    color: #e0e0e0;
 }
 
 .alert-info {
-    background-color: #1e90ff;
-    border-color: #1c86ee;
+    color: #31708f;
+    background-color: #d9edf7;
+    border-color: #bce8f1;
 }
 
 .alert-success {
-    background-color: #2e8b57;
-    border-color: #228b22;
+    color: black;
+    background-color: #39ea3c;
+    border-color: #d6e9c6;
 }
 
 .alert-warning {
-    background-color: #ff9800;
-    border-color: #ff5722;
+    color: black;
+    background-color: #20bb37;
+    border-color: #faebcc;
 }
 
 .alert-danger {
-    background-color: #e53935;
-    border-color: #d32f2f;
+    color: white;
+    background-color: red;
+    border-color: #ebccd1;
 }
 
-/* Footer Styling */
-.stocks-footer {
-    text-align: center;
-    margin-top: 40px;
-    color: #666;
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Space between buttons */
+    margin-top: 20px; /* Space from the top */
 }
 
-/* Additional Styles */
-.container {
-    padding: 20px;
-}
-
-.inlay-table {
-    border-collapse: collapse;
-    width: 100%;
-    max-width: 300px;
-    margin: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #444;
-    border-radius: 4px;
-}
-
-.inlay-table th,
-.inlay-table td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #333;
-}
-
-.inlay-table th {
-    background-color: #333;
-    color: #ffffff;
-    font-weight: bold;
-}
-
-.inlay-table tbody tr:nth-child(even) {
-    background-color: #222;
-}
-
-.inlay-table tbody tr:hover {
-    background-color: #333;
-}
-
-#graphModal {
-    background-color: #1f1f1f;
-    border: 1px solid #444;
-    padding: 20px;
-    border-radius: 10px;
-}
-
-/* Navigation Bar Styling */
-.topnav {
-    background-color: #1f1f1f; /* Dark background */
-    overflow: hidden;
-    padding: 10px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Subtle shadow */
-}
-
-.topnav a {
-    float: left;
-    color: #e0e0e0; /* Light text color */
-    text-align: center;
-    padding: 14px 20px;
+.logsignbutton {
     text-decoration: none;
-    font-size: 17px;
-    transition: background-color 0.3s, color 0.3s; /* Smooth transition */
+    color: white;
+    background-color: blue;
+    border-radius: 4px;
+    padding: 10px 20px;
+    border: 2px solid blue;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
-.topnav a:hover {
-    background-color: #333; /* Darker background on hover */
-    color: #1e90ff; /* Vibrant blue text on hover */
-    border-radius: 5px; /* Rounded corners on hover */
+.logsignbutton:hover {
+    color: white;
+    background-color: #6f5aeb;
+    border-color: blue;
 }
 
-.topnav a.active {
-    background-color: #1e90ff; /* Vibrant blue */
-    color: #ffffff; /* White text for active link */
-    border-radius: 5px; /* Rounded corners for active link */
-}
-/* Form Container Styling */
 .form-container {
+    width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.custom-form {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center horizontally */
-    justify-content: center; /* Center vertically if needed */
-    max-width: 600px; /* Adjust based on your preferred width */
-    margin: 0 auto; /* Center the form container horizontally */
-    padding: 20px;
-    background-color: #333; /* Background color for the form container */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
 }
 
-/* Form Element Styling */
-.form-container label {
+.form-group {
+    margin-bottom: 10px;
+}
+
+.form-label {
     display: block;
-    margin-bottom: 8px;
-    color: #e0e0e0; /* Light text color for labels */
+    font-weight: bold;
+    margin-bottom: 5px;
 }
 
-.form-container select,
-.form-container input[type="date"],
-.form-container input[type="checkbox"] {
-    width: 100%; /* Full width of the form container */
-    max-width: 300px; /* Limit width to prevent over-extension */
-    margin-bottom: 12px; /* Space between elements */
-    padding: 8px;
-    border: 1px solid #444;
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #3a3a3a; /* Darker border */
     border-radius: 4px;
-    background-color: #333;
-    color: #e0e0e0;
+    box-sizing: border-box;
+    background-color: #2d2d2d; /* Dark input background */
+    color: #d4d4d4; /* Light input text */
 }
 
-.form-container input[type="checkbox"] {
-    width: auto; /* Checkbox doesn't need full width */
-}
-
-.form-container input[type="submit"] {
-    width: auto; /* Button width based on content */
-    background-color: #1e90ff;
-    color: #ffffff;
+.form-submit {
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: #fff;
     border: none;
-    border-radius: 25px;
-    padding: 10px 20px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+    height: auto;
 }
 
-.form-container input[type="submit"]:hover {
-    background-color: #ffffff;
-    color: #1e90ff;
-    border: 1px solid #1e90ff;
+.form-submit:hover {
+    background-color: #45a049;
 }
+
+.form-submit-group {
+    display: flex;
+    justify-content: center;
+}
+
+.form-container-site {
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.analyst-container {
+    width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.analyst-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.analyst-form-group {
+    margin-bottom: 10px;
+}
+
+.analyst-form-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.analyst-form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #3a3a3a; /* Darker border */
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #2d2d2d; /* Dark input background */
+    color: #d4d4d4; /* Light input text */
+}
+
+.analyst-form-submit {
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.analyst-form-submit:hover {
+    background-color: #45a049;
+}
+
+.chart-container {
+    width: 100%;
+    height: 400px; /* Adjust the height as needed */
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+.navbar {
+    background-color: #111111;
+    color: #d4d4d4;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: #d4d4d4;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: #ffffff;
+}
+
+.dropdown-menu {
+    background-color: #2d2d2d;
+    border: 1px solid #3a3a3a;
+}
+
+.dropdown-item {
+    color: #d4d4d4;
+}
+
+.dropdown .dropbtn {
+    font-size: 17px;  
+    border: none;
+    outline: none;
+    color: white;
+    padding: 14px 16px;
+    background-color: inherit;
+    font-family: inherit;
+    margin: 0;
+    cursor: pointer;
+}
+.dropdown:hover .dropbtn {
+    background-color: #424549;
+}
+.dropdown-item:hover {
+    background-color: #424549;
+    color: #ffffff;
+}
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #5e5d5d;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    right: 0;
+}
+
+.dropdown-content a {
+    float: none;
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.dropdown-content a:hover {
+    background-color: #000000;
+    color: white;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+
+
+.topnav {
+    background-color: #3b52a4;
+    overflow: hidden;
+  }
+  
+  .topnav a {
+    float: left;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+  }
+  
+  .topnav a:hover {
+    background-color: #424549;
+    color: white;
+  }
+  
+  .topnav a.active {
+    background-color: rgb(6, 6, 108);
+    color: white;
+  }

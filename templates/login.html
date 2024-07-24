@@ -12,6 +12,7 @@
 {% endblock %}
 
 {% block forms %}
+
     <form method="POST" action="{{ url_for('login') }}" class="custom-form">
         {{ form.hidden_tag() }}
         <div class="form-group">
@@ -28,4 +29,22 @@
             {{ form.submit(class="form-submit") }}
         </div>
     </form>
+<div class="container">
+    <a href="{{ url_for('google_login') }}" style="
+    display: inline-block;
+    background-color: #4285F4;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background-color 0.3s;
+    margin: 10px 0;
+">
+    <i class="fab fa-google" style="margin-right: 8px;"></i> Log in with Google
+</a>
+</div>
 {% endblock %}

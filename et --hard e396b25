@@ -1,0 +1,28 @@
+[33ma79986b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{0}: reset: moving to HEAD~3
+[33me396b25[m HEAD@{1}: rebase (abort): returning to refs/heads/main
+[33me9e8f75[m HEAD@{2}: commit (amend): Improved Login UX and improved recommendations backend
+[33m144a2c9[m HEAD@{3}: rebase (start): checkout HEAD~5
+[33me396b25[m HEAD@{4}: rebase (finish): returning to refs/heads/main
+[33me396b25[m HEAD@{5}: rebase (start): checkout HEAD~3
+[33me396b25[m HEAD@{6}: commit: Added dark mode and google sign in
+[33m1862939[m HEAD@{7}: commit: Added dark mode and google sign in
+[33m394b72e[m HEAD@{8}: commit: Added dark mode and google sign in
+[33ma79986b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{9}: commit: Improved Buy mechanism and updated update.py
+[33m115e9c0[m HEAD@{10}: commit: updated UX
+[33m144a2c9[m HEAD@{11}: commit: Improved Login UX and improved recommendations backend
+[33m61485ac[m HEAD@{12}: commit: improved landing pages and login/signup/logout system
+[33m84b1ec9[m HEAD@{13}: commit: improved update.py
+[33mdd4755c[m HEAD@{14}: commit: improved update.py
+[33m1091a52[m HEAD@{15}: commit: improved update.py
+[33m29c2d1a[m HEAD@{16}: commit: improved update.py
+[33m0ab4c1e[m HEAD@{17}: commit: improved update.py
+[33mb140f84[m HEAD@{18}: commit: improved update.py
+[33mdf8ed59[m HEAD@{19}: commit: Logsout user after closing tab
+[33mf2f087f[m HEAD@{20}: commit: Improved signup and login UI/UX
+[33mb89b831[m HEAD@{21}: commit: updated Username label
+[33m765fe47[m HEAD@{22}: commit: updated requirements
+[33m13cdb5c[m HEAD@{23}: commit: Added Login and Signup framework, added dynamic geckodriver installation
+[33m9e6b56b[m HEAD@{24}: commit: updated requirements
+[33md5dac72[m HEAD@{25}: commit: updated file paths using OS and changed to firefox browser
+[33ma3a80f3[m HEAD@{26}: pull origin main --allow-unrelated-histories: Merge made by the 'ort' strategy.
+[33m820ce91[m HEAD@{27}: commit (initial): First commit for hosting

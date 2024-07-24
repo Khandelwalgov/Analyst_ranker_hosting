@@ -9,7 +9,64 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Add this CSS for the toggle switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
 
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider i {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #fff;
+            transition: .4s;
+        }
+
+        .slider .fa-sun {
+            left: 10px;
+            display: none;
+        }
+
+        .slider .fa-moon {
+            right: 10px;
+            display: block;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .slider .fa-sun {
+            display: block;
+        }
+
+        input:checked + .slider .fa-moon {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     
@@ -37,6 +94,17 @@
             </button>
             <div class="dropdown-content">
                 <a href="{{url_for('logout')}}">Logout</a>
+                <div>
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <br/>
+                    <span class="slider round">
+                        <i class="fas fa-sun"></i>
+                        <i class="fas fa-moon"></i>
+                    </span>
+                    
+                </label>
+            </div>
             </div>
         </div>
     </div>
@@ -67,6 +135,33 @@ window.addEventListener('unload', function(event) {
         console.error('Error logging out on tab close:', error);
     });
 });
+document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('theme-toggle');
+            const stylesheet = document.createElement('link');
+            stylesheet.id = 'theme-stylesheet';
+            stylesheet.rel = 'stylesheet';
+            document.head.appendChild(stylesheet);
+
+            const sunIcon = document.querySelector('.fa-sun');
+            const moonIcon = document.querySelector('.fa-moon');
+
+            // Check local storage for theme preference
+            const darkMode = localStorage.getItem('dark-mode') === 'true';
+            toggle.checked = darkMode;
+            stylesheet.href = darkMode ? "{{ url_for('static', filename='css/dark.css') }}" : "{{ url_for('static', filename='css/main.css') }}";
+
+            sunIcon.style.display = darkMode ? 'none' : 'block';
+            moonIcon.style.display = darkMode ? 'block' : 'none';
+
+            toggle.addEventListener('change', function() {
+                const isChecked = this.checked;
+                localStorage.setItem('dark-mode', isChecked);
+                stylesheet.href = isChecked ? "{{ url_for('static', filename='css/dark.css') }}" : "{{ url_for('static', filename='css/main.css') }}";
+
+                sunIcon.style.display = isChecked ? 'none' : 'block';
+                moonIcon.style.display = isChecked ? 'block' : 'none';
+            });
+        });
 
 </script>
 </body>

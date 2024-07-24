@@ -14,6 +14,8 @@ from wtforms import StringField,SubmitField, PasswordField,BooleanField,Validati
 from wtforms.validators import DataRequired,EqualTo,Length
 import os
 import csv
+from flask_dance.contrib.google import make_google_blueprint, google
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///users.sqlite3'
 
@@ -145,6 +147,67 @@ def logout():
     flash("You have been logged out successfully",'success')
     print('You have been logged out successfully')
     return(redirect(url_for('index')))
+
+
+@app.route('/login/google/authorized')
+def google_login():
+    if not google.authorized:
+        return redirect(url_for("google.login"))
+    resp = google.get("/plus/v1/people/me")
+    assert resp.ok, resp.text
+    user_info = resp.json()
+    email = user_info["emails"][0]["value"]
+    user = users.query.filter_by(email=email).first()
+    if user is None:
+        name = user_info["displayName"]
+        base_username = email.split("@")[0]
+        username = base_username
+        count = 1
+        while users.query.filter_by(username=username).first() is not None:
+            username = f"{base_username}{count}"
+            count += 1
+        user = users(
+            email=email,
+            name=name,
+            username=username,
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(current_dir)
+        dir_to_be_used=os.path.join(parent_dir,'csv_data')
+        user_dir = f'User{user._id}csv_data'
+        dir_to_create = os.path.join(dir_to_be_used, user_dir)
+
+        # Create the directory if it doesn't exist
+        if not os.path.exists(dir_to_create):
+            os.makedirs(dir_to_create)
+
+            # Create CSV files with headers
+            stocks_portfolio_csv = os.path.join(dir_to_create, 'StocksPortfolio.csv')
+            history_orders_csv = os.path.join(dir_to_create, 'HistoryOrders.csv')
+            tracking_stocks_csv = os.path.join(dir_to_create, 'TrackingStocks.csv')
+
+            # Write headers to CSV files
+            with open(stocks_portfolio_csv, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['Company', 'Bought Date', 'Price Bought At', 'Target', 'Upside', 'Quantity'])
+
+            with open(history_orders_csv, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['Date', 'Action', 'Company', 'Product', 'Quantity', 'Price'])
+
+            with open(tracking_stocks_csv, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['Company', 'Buy Date', 'Sell Date', 'Target', 'Buy Price', 'Sell Price', 'Quantity', 'Received Return'])
+
+        flash('User added successfully and directory with CSV files created.', 'success')
+    login_user(user)
+    session['user'] = user._id
+    return redirect(url_for("dashboard"))
+
+
 
 analyst_rank={}
 # Global definition of final_df to make sorting easier as it won't have to be processed again every time sorting has to be done
@@ -1071,4 +1134,5 @@ def reset_session():
 
 if __name__ == "__main__":
     
+    #app.run(ssl_context=('cert.pem', 'key.pem'),debug=True)
     app.run(debug=True)
