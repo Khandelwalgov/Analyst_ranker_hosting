@@ -300,7 +300,7 @@ def dashboard():
     return render_template('dashboard.html')
 #Analyst view
 
-@app.route('/update')
+@app.route('/update',methods=['POST'])
 @login_required
 def update():
     historicData()
