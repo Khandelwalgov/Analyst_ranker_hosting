@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block navigationbar %}
+<a href={{url_for('dashboard')}}>Dashboard</a>
+<a href={{url_for('analyst')}}>Analyst View</a>
+    <a href={{url_for('stocks')}}>Hot Stocks</a>
+    <a href="{{url_for('recommendation')}}">Recommendations</a>
+    <a href="{{url_for('ranker')}}">Rank view</a>
+    <a href="{{url_for('portfolio')}}">My Portfolio</a>
+    <a href="{{url_for('today')}}">Portfolio Updates</a>
+    <a href="{{url_for('orders')}}">Orders</a>
+    <a class = "active" href="{{url_for('actions')}}">Today's actions</a>
+    
+{% endblock %}
+{% block forms %}
+
+{% endblock %}   
+
+{% block df %}
+<div class="container">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>S.No.</th>
+                <th>Company</th>
+                <th>Date Bought</th>
+                <th>Qty</th>
+                <th>Price Bought At (INR)</th>
+                <th>LTP (INR)</th>
+                <th>P&L %</th>
+                <th>Target Price (INR)</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, row in df.iterrows() %}
+            <tr>
+                <th>{{loop.index}}</th>
+                <th>{{row['Company']}}</th>
+                <td>{{row['Bought Date']}}</td>
+                <td>{{row['Quantity']}}</td>
+                <td>{{row['Price']}}</td>
+                <td>{{row['LTP']}}</td>
+                <td>{{row['P&L']}}</td>
+                <td>{{row['Target']}}</td>
+                {% if row['Buy'] %}
+                <td>
+                    <form action='/buy_action' method="POST">
+                        <input style="width:100px" type="Number" name="price_buy" step ="0.01" required placeholder="Price" value ="{{row['LTP']|replace(',', '')}}"/>
+                        <input style="margin-right: 0px" type="Number" name="qty" id='qty' min ='1' required placeholder="Qty"/>
+                        <input type="hidden" name="company" value="{{ row['Company'] }}">
+                        <input type="hidden" name="target" value="{{ row['Target'] }}">
+                        <input type="submit" value="Buy" id="submit-button">
+                    </form>
+                </td>
+                {%endif%}
+                {% if row['Sell'] %}
+                <td>
+                    <form action='/sell_action' method="POST">
+                        <input style="margin-right: 0px" type="Number" name="qty" id='qty' min ='1' required placeholder="Qty"/>
+                        <input type="hidden" name="quantity" value="{{ row['Quantity'] }}">
+                        <input type="hidden" name="company" value="{{ row['Company'] }}">
+                        <input type="hidden" name="bought_date" value="{{ row['Bought Date'] }}">
+                        <input type="hidden" name="price_bought_at" value="{{ row['Price'] }}">
+                        <input type="hidden" name="target" value="{{ row['Target'] }}">
+                        <input type="submit" value="Sell" id="submit-button">
+                    </form>
+                </td>
+                {%endif%}
+                
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

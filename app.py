@@ -15,6 +15,7 @@ from wtforms.validators import DataRequired,EqualTo,Length
 import os
 import csv
 from flask_dance.contrib.google import make_google_blueprint, google
+from update import UpdateCalls,historicData
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///users.sqlite3'
@@ -282,6 +283,8 @@ def dashboard():
     global stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df, dropdown_options
     global default_form_values,dropdown_options_portfolio_gen
     global final_df
+    UpdateCalls()
+    historicData()
     date_to_be_considered =datetime.date.today()-datetime.timedelta(days=365)
     default_form_values = {
     'start-date': '2018-01-01',
@@ -297,6 +300,12 @@ def dashboard():
     session['form_values'] = default_form_values
     return render_template('dashboard.html')
 #Analyst view
+
+@app.route('/update')
+@login_required
+def update():
+    return redirect(url_for('dashboard'))
+
 @app.route('/analyst',methods=['GET', 'POST'])
 @login_required
 def analyst():
@@ -631,7 +640,7 @@ def portfolio():
         pl_list.append(round(pl,2))
         remaining_up_list.append(round(rem_up,2))
         company=row['Company']
-        if pl>=0.0:
+        if pl>=10.0:
             recommendation_sell[row['Company']]=True
             reason_recommendation[row['Company']]=f"Recieved {round(pl,2)}% returns already, sell {company} and buy again"
         else:
@@ -650,7 +659,7 @@ def portfolio():
         curr=round(((float(row['Target'])-float(ltp))/float(ltp))*100,2)
         current_return.append(curr)
         downside=round(((float(ltp)-float(row['Sell Price']))/float(row['Sell Price']))*100,2)
-        if downside<=0.0:
+        if downside<=(-3.0):
             recommendation_buy[row['Company']]=True
             reason_buy[row['Company']]=f"Stock dipped {downside}% from sell price, should buy now"
         else:
@@ -915,10 +924,6 @@ def sell_track_from_portfolio():
     track_df['Current Return']=current_return
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
 
-
-
-
-
 @app.route('/buy_from_tracking_portfolio',methods=['POST'])
 @login_required
 def buy_from_tracking_portfolio():
@@ -991,12 +996,6 @@ def buy_from_tracking_portfolio():
     track_df['LTP']=ltp_list1
     track_df['Current Return']=current_return
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
-
-
-
-
-
-
 
 @app.route('/delete_row', methods=['POST'])
 @login_required
@@ -1126,6 +1125,197 @@ def orders():
     return render_template('orders.html',df=df)
     
 
+@app.route('/actions')
+@login_required
+def actions():
+    global dropdown_options_portfolio_gen,portfolio_path,stocks_track_path
+    columns=['Company','Quantity']
+    company=[]
+    quantity=[]
+    ltp_list=[]
+    price=[]
+    target=[]
+    buy =[]
+    sell=[]
+    curr_pl=[]
+    date=[]
+    df=pd.read_csv(portfolio_path)
+    df_actions=pd.DataFrame(columns=columns)
+    for index,row in df.iterrows():
+        ltp=return_ltp(row['Company'])
+        pl=round(((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100,2)
+        if pl >5.0:
+            company.append(row['Company'])
+            quantity.append(row['Quantity'])
+            ltp_list.append(ltp)
+            price.append(row['Price Bought At'])
+            target.append(row['Target'])
+            buy.append(False)
+            sell.append(True)
+            curr_pl.append(pl)
+            date.append(row['Bought Date'])
+        elif pl <0.0:
+            company.append(row['Company'])
+            quantity.append(row['Quantity'])
+            ltp_list.append(ltp)
+            price.append(row['Price Bought At'])
+            target.append(row['Target'])
+            buy.append(True)
+            sell.append(False)
+            curr_pl.append(pl)
+            date.append(row['Bought Date'])
+
+    df_actions['Company']=company
+    df_actions['Quantity']=quantity
+    df_actions['LTP']=ltp
+    df_actions['Price']=price
+    df_actions['Target']=target
+    df_actions['P&L']=curr_pl
+    df_actions['Buy']=buy
+    df_actions['Sell']=sell
+    df_actions['Bought Date']=date
+
+    return render_template('actions.html',df=df_actions)
+
+
+
+@app.route('/buy_action',methods=['POST'])
+@login_required
+def buy_action():
+    global dropdown_options_portfolio_gen,portfolio_path,stocks_track_path
+
+    company=request.form['company']
+    target=request.form['target']
+    date=datetime.date.today()
+    ltp=request.form['price_buy']
+    upside=round(((float(target)-float(ltp))/float(ltp))*100,2)
+    qty=request.form['qty']
+    portfolio_data=pd.DataFrame([company,date,ltp,target,upside,qty]).transpose()
+    portfolio_data.to_csv(portfolio_path, mode='a', header=False, index=False)
+    orders_data=pd.DataFrame([date,'Buy',company,'CNC',qty,ltp]).transpose()
+    orders_data.to_csv(history_orders_path, mode='a', header=False, index=False)
+
+    columns=['Company','Quantity']
+    company=[]
+    quantity=[]
+    ltp_list=[]
+    price=[]
+    target=[]
+    buy =[]
+    sell=[]
+    curr_pl=[]
+    date=[]
+    df=pd.read_csv(portfolio_path)
+    df_actions=pd.DataFrame(columns=columns)
+    for index,row in df.iterrows():
+        ltp=return_ltp(row['Company'])
+        pl=round(((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100,2)
+        if pl >5.0:
+            company.append(row['Company'])
+            quantity.append(row['Quantity'])
+            ltp_list.append(ltp)
+            price.append(row['Price Bought At'])
+            target.append(row['Target'])
+            buy.append(False)
+            sell.append(True)
+            curr_pl.append(pl)
+            date.append(row['Bought Date'])
+        elif pl <0.0:
+            company.append(row['Company'])
+            quantity.append(row['Quantity'])
+            ltp_list.append(ltp)
+            price.append(row['Price Bought At'])
+            target.append(row['Target'])
+            buy.append(True)
+            sell.append(False)
+            curr_pl.append(pl)
+            date.append(row['Bought Date'])
+
+    df_actions['Company']=company
+    df_actions['Quantity']=quantity
+    df_actions['LTP']=ltp
+    df_actions['Price']=price
+    df_actions['Target']=target
+    df_actions['P&L']=curr_pl
+    df_actions['Buy']=buy
+    df_actions['Sell']=sell
+    df_actions['Bought Date']=date
+
+    return render_template('actions.html',df=df_actions) 
+@app.route('/sell_action',methods=['POST'])
+@login_required
+def sell_action():
+    global dropdown_options_portfolio_gen,portfolio_path,stocks_track_path
+
+    company = request.form['company']
+    bought_date = request.form['bought_date']
+    price_bought_at = request.form['price_bought_at']
+    target = request.form['target']
+    quantity = request.form['quantity']
+    print(quantity)
+
+    sold_on=datetime.date.today()
+    sold_price=return_ltp(company)
+    rcvd_return=round(((float(sold_price)-float(price_bought_at))/float(price_bought_at))*100,2)
+    track_df=pd.DataFrame([company,bought_date,sold_on,target,price_bought_at,sold_price,quantity,rcvd_return]).transpose()
+    track_df.to_csv(stocks_track_path, mode='a', header=False, index=False)
+    df = pd.read_csv(portfolio_path)
+    for index,row in df.iterrows():
+        print(row['Quantity'])
+        if (int(row['Quantity'])==int(quantity)) and (row['Company'] == company) and (convert_date(row['Bought Date'])== convert_date(bought_date)) and ((float(row['Price Bought At'])) == (float(price_bought_at))) and ((float(row['Target']))== (float(target))):
+            
+            df=df.drop(index,axis='index')
+    orders_data=pd.DataFrame([sold_on,'Sell',company,'CNC',quantity,sold_price]).transpose()
+    orders_data.to_csv(history_orders_path, mode='a', header=False, index=False)
+    df.to_csv(portfolio_path,index=False)
+
+    columns=['Company','Quantity']
+    company=[]
+    quantity=[]
+    ltp_list=[]
+    price=[]
+    target=[]
+    buy =[]
+    sell=[]
+    curr_pl=[]
+    date=[]
+    df=pd.read_csv(portfolio_path)
+    df_actions=pd.DataFrame(columns=columns)
+    for index,row in df.iterrows():
+        ltp=return_ltp(row['Company'])
+        pl=round(((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100,2)
+        if pl >5.0:
+            company.append(row['Company'])
+            quantity.append(row['Quantity'])
+            ltp_list.append(ltp)
+            price.append(row['Price Bought At'])
+            target.append(row['Target'])
+            buy.append(False)
+            sell.append(True)
+            curr_pl.append(pl)
+            date.append(row['Bought Date'])
+        elif pl <0.0:
+            company.append(row['Company'])
+            quantity.append(row['Quantity'])
+            ltp_list.append(ltp)
+            price.append(row['Price Bought At'])
+            target.append(row['Target'])
+            buy.append(True)
+            sell.append(False)
+            curr_pl.append(pl)
+            date.append(row['Bought Date'])
+
+    df_actions['Company']=company
+    df_actions['Quantity']=quantity
+    df_actions['LTP']=ltp
+    df_actions['Price']=price
+    df_actions['Target']=target
+    df_actions['P&L']=curr_pl
+    df_actions['Buy']=buy
+    df_actions['Sell']=sell
+    df_actions['Bought Date']=date
+
+    return render_template('actions.html',df=df_actions)  
 #reset session
 @app.route('/reset_session')
 def reset_session():

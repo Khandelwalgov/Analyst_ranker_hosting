@@ -11,6 +11,7 @@
     <a href="{{url_for('portfolio')}}">My Portfolio</a>
     <a href="{{url_for('today')}}">Portfolio Updates</a>
     <a href="{{url_for('orders')}}">Orders</a>
+    <a href="{{url_for('actions')}}">Today's actions</a>
 
 
 {% endblock %}
@@ -21,6 +22,9 @@
 {% endblock %}   
 
 {% block df %}
+<form action="/update" method="POST">
+<input type="submit" value="Get Latest Data For Computations" id="submit-button">
+</form>
 <div class="stocks-footer">
 <p>&copy; 2024 Stocks Website. All rights reserved.</p>
 </div>
