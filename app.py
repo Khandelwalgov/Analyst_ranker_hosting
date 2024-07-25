@@ -284,7 +284,6 @@ def dashboard():
     global default_form_values,dropdown_options_portfolio_gen
     global final_df
     UpdateCalls()
-    historicData()
     date_to_be_considered =datetime.date.today()-datetime.timedelta(days=365)
     default_form_values = {
     'start-date': '2018-01-01',
@@ -304,6 +303,7 @@ def dashboard():
 @app.route('/update')
 @login_required
 def update():
+    historicData()
     return redirect(url_for('dashboard'))
 
 @app.route('/analyst',methods=['GET', 'POST'])
