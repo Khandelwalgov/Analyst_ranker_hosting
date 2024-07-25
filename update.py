@@ -110,6 +110,10 @@ def UpdateCalls():
                     td_element = row.find('td', class_="rightAlgn negative invisible-details-control")
                     if td_element:
                         reco = td_element.contents[0].strip()
+                    else:
+                        td_element = row.find('td', class_='rightAlgn positive invisible-details-control')
+                        if td_element:
+                            reco = td_element.contents[0].strip()
 
                 target_td_list = row.find_all('td', class_='rightAlgn invisible-details-control')
                 if len(target_td_list) > 1:
