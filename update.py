@@ -266,4 +266,3 @@ def historicData():
                     stock_data.to_csv(csv_file_path, mode='a', header=False, index=False)
                     print(f'Successfully appended {len(stock_data)} rows for {lname} ')
     return
-historicData()
