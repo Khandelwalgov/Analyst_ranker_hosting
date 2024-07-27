@@ -80,6 +80,8 @@
                         {% if recommendation_sell[row['Company']] %}
                             <p title="{{ reason_recommendation[row['Company']]| safe }}"">ⓘ Recommended</p>
                         {% endif %}
+                        <input style="margin-right: 0px" type="Number" name="qty" id='qty' min ='1' required placeholder="Qty"/>
+
                         <input type="hidden" name="quantity" value="{{ row['Quantity'] }}">
                         <input type="hidden" name="company" value="{{ row['Company'] }}">
                         <input type="hidden" name="bought_date" value="{{ row['Bought Date'] }}">

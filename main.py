@@ -661,8 +661,6 @@ def return_ltp(company):
 def portfolio_updates(portfolio_path):
     update_df=pd.DataFrame(columns=['Remarks'])
     dfp=pd.read_csv(portfolio_path)
-    historicData()
-    UpdateCalls()
     #csv_file_path = r'E:\python\CallsWithUpdatedUpside.csv'
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)

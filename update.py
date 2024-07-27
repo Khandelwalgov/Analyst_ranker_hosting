@@ -246,6 +246,9 @@ def historicData():
     #csv_file_path = r'E:\python\HistoricDataFrom2018.csv'
     count =0
     df1=pd.read_csv(csv_file_path)
+    # print((df1['Date']))
+    # df1['Date']=df1['Date'].apply(convert_date)
+    # print(df1[(df1['Date']==datetime.date(2024,7,26))])
     from_date = str(convert_date(df1.iloc[-1]['Date'])+datetime.timedelta(days=1))
     if convert_date(from_date) <datetime.date.today():
         for com,lname, ticker_symbol,x in zip(dfsu["Company"],dfsu["Long Name"],dfsu["Ticker"],dfsu["to be taken"]):
@@ -263,3 +266,4 @@ def historicData():
                     stock_data.to_csv(csv_file_path, mode='a', header=False, index=False)
                     print(f'Successfully appended {len(stock_data)} rows for {lname} ')
     return
+historicData()

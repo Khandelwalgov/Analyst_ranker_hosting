@@ -506,3 +506,50 @@ th[title]:hover:after {
     background-color: rgb(6, 6, 108);
     color: white;
   }
+  .inlay-table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 300px; /* Adjust max-width as per your design */
+    margin: 10px; /* Adjust margin as needed */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+    border: 1px solid #ccc; /* Border for the table */
+    border-radius: 4px; /* Rounded corners */
+  }
+  
+  .inlay-table th,
+  .inlay-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd; /* Bottom border for cells */
+  }
+  
+  .inlay-table th {
+    background-color: #1e2124; /* Light background color for header */
+    font-weight: bold;
+  }
+  .inlay-table tbody tr:nth-child(odd) {
+    background-color: #1e2124; /* Alternate row color */
+  }
+  .inlay-table tbody tr:nth-child(even) {
+    background-color: #36393e; /* Alternate row color */
+  }
+  
+  .inlay-table tbody tr:hover {
+    background-color: #424549; /* Hover background color */
+  }
+  .inlay-table thead th {
+    background-color: #0026ad;
+    color: white;
+    font-weight: bold;
+    text-align: left;
+    border-bottom: 2px solid #3a3a3a; /* Darker border */
+  
+    opacity: 1;
+}
+
+
+
+
+.inlay-table tbody td {
+    color: white;
+}

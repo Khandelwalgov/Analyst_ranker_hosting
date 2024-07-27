@@ -303,7 +303,6 @@ def dashboard():
 @app.route('/update',methods=['POST'])
 @login_required
 def update():
-    historicData()
     return redirect(url_for('dashboard'))
 
 @app.route('/analyst',methods=['GET', 'POST'])
@@ -586,12 +585,8 @@ def show_full_rec_table():
     global company_data
     global recommendation_df
     global form_values_rec
-    if rank_consider in form_values_rec:
-        rank_consider=form_values_rec['rank-consider']
-    else:
-        rank_consider=='yes'
 
-    wtcon=True if rank_consider=="yes" else False
+    wtcon=True 
     return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
 @app.route('/ranker')
 @login_required
@@ -632,7 +627,7 @@ def portfolio():
     remaining_up_list=[]
     for index,row in df.iterrows():
         ltp=return_ltp(row['Company'])
-        curr_val=ltp*int(row['Quantity'])
+        curr_val=ltp*float(row['Quantity'])
         pl=((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100
         rem_up=((float(row['Target'])-float(ltp))/float(ltp))*100
         c_val.append(round(curr_val,2))
@@ -681,6 +676,15 @@ def buy_from_portfolio():
     ltp=request.form['price_buy']
     upside=round(((float(target)-float(ltp))/float(ltp))*100,2)
     qty=request.form['qty']
+    df=pd.read_csv(portfolio_path)
+
+    for index,row in df.iterrows():
+        if row['Company']== company:
+            print(row['Quantity'])
+            ltp = round(((float(qty)*float(ltp))+(float(row['Quantity'])*float(row['Price Bought At'])))/(float(qty)+float(row['Quantity'])),2)
+            qty = float(qty) +float(row['Quantity'])
+            df=df.drop(index,axis='index')
+    df.to_csv(portfolio_path, index=False)
     portfolio_data=pd.DataFrame([company,date,ltp,target,upside,qty]).transpose()
     portfolio_data.to_csv(portfolio_path, mode='a', header=False, index=False)
     orders_data=pd.DataFrame([date,'Buy',company,'CNC',qty,ltp]).transpose()
@@ -692,7 +696,7 @@ def buy_from_portfolio():
     remaining_up_list=[]
     for index,row in df.iterrows():
         ltp=return_ltp(row['Company'])
-        curr_val=ltp*int(row['Quantity'])
+        curr_val=ltp*float(row['Quantity'])
         pl=((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100
         rem_up=((float(row['Target'])-float(ltp))/float(ltp))*100
         c_val.append(round(curr_val,2))
@@ -745,7 +749,7 @@ def add_to_portfolio():
     remaining_up_list=[]
     for index,row in df.iterrows():
         ltp=return_ltp(row['Company'])
-        curr_val=ltp*int(row['Quantity'])
+        curr_val=ltp*float(row['Quantity'])
         pl=((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100
         rem_up=((float(row['Target'])-float(ltp))/float(ltp))*100
         c_val.append(round(curr_val,2))
@@ -820,7 +824,7 @@ def add_to_portfolio():
     remaining_up_list=[]
     for index,row in df.iterrows():
         ltp=return_ltp(row['Company'])
-        curr_val=ltp*int(row['Quantity'])
+        curr_val=ltp*float(row['Quantity'])
         pl=((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100
         rem_up=((float(row['Target'])-float(ltp))/float(ltp))*100
         c_val.append(round(curr_val,2))
@@ -863,6 +867,7 @@ def sell_track_from_portfolio():
     price_bought_at = request.form['price_bought_at']
     target = request.form['target']
     quantity = request.form['quantity']
+    qty=request.form['qty']
     sold_on=datetime.date.today()
     sold_price=return_ltp(company)
     recommendation_sell={}
@@ -870,15 +875,25 @@ def sell_track_from_portfolio():
     recommendation_buy={}
     reason_buy={}
     rcvd_return=round(((float(sold_price)-float(price_bought_at))/float(price_bought_at))*100,2)
-    track_df=pd.DataFrame([company,bought_date,sold_on,target,price_bought_at,sold_price,quantity,rcvd_return]).transpose()
-    track_df.to_csv(stocks_track_path, mode='a', header=False, index=False)
     df = pd.read_csv(portfolio_path)
     for index,row in df.iterrows():
-        if (int(row['Quantity'])==int(quantity)) and (row['Company'] == company) and (convert_date(row['Bought Date'])== convert_date(bought_date)) and ((float(row['Price Bought At'])) == (float(price_bought_at))) and ((float(row['Target']))== (float(target))):
+        if (float(row['Quantity'])==float(quantity)) and (row['Company'] == company) and (convert_date(row['Bought Date'])== convert_date(bought_date)) and ((float(row['Price Bought At'])) == (float(price_bought_at))) and ((float(row['Target']))== (float(target))):
             
-            df=df.drop(index,axis='index')
-    orders_data=pd.DataFrame([sold_on,'Sell',company,'CNC',quantity,sold_price]).transpose()
-    orders_data.to_csv(history_orders_path, mode='a', header=False, index=False)
+            if float(qty)== float(quantity):
+                df=df.drop(index,axis='index')
+                orders_data=pd.DataFrame([sold_on,'Sell',company,'CNC',quantity,sold_price]).transpose()
+                orders_data.to_csv(history_orders_path, mode='a', header=False, index=False)
+                track_df=pd.DataFrame([company,bought_date,sold_on,target,price_bought_at,sold_price,qty,rcvd_return]).transpose()
+                track_df.to_csv(stocks_track_path, mode='a', header=False, index=False)
+            elif float(qty)<float(quantity):
+                df.at[index,'Quantity']=float(quantity)-float(qty)
+                orders_data=pd.DataFrame([sold_on,'Sell',company,'CNC',qty,sold_price]).transpose()
+                orders_data.to_csv(history_orders_path, mode='a', header=False, index=False)
+                track_df=pd.DataFrame([company,bought_date,sold_on,target,price_bought_at,sold_price,qty,rcvd_return]).transpose()
+                track_df.to_csv(stocks_track_path, mode='a', header=False, index=False)
+            else:
+                flash('Cannot sell more than you own!','danger')
+
     
     # Save the updated DataFrame back to the CSV file
     df.to_csv(portfolio_path,index=False)
@@ -889,7 +904,7 @@ def sell_track_from_portfolio():
     remaining_up_list=[]
     for index,row in df.iterrows():
         ltp=return_ltp(row['Company'])
-        curr_val=ltp*int(row['Quantity'])
+        curr_val=ltp*float(row['Quantity'])
         pl=((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100
         rem_up=((float(row['Target'])-float(ltp))/float(ltp))*100
         c_val.append(round(curr_val,2))
@@ -942,6 +957,15 @@ def buy_from_tracking_portfolio():
     date=datetime.date.today()
     ltp=request.form['price_buy']
     upside=round(((float(target)-float(ltp))/float(ltp))*100,2)
+    df = pd.read_csv(portfolio_path)
+    for index,row in df.iterrows():
+        if row['Company']== company:
+            print(row['Quantity'])
+            ltp = round(((float(qty)*float(ltp))+(float(row['Quantity'])*float(row['Price Bought At'])))/(float(qty)+float(row['Quantity'])),2)
+            qty = float(qty) +float(row['Quantity'])
+            df=df.drop(index,axis='index')
+    df.to_csv(portfolio_path, index=False)
+
     portfolio_data=pd.DataFrame([company,date,ltp,target,upside,quantity]).transpose()
     portfolio_data.to_csv(portfolio_path, mode='a', header=False, index=False)
     orders_data=pd.DataFrame([date,'Buy',company,'CNC',quantity,ltp]).transpose()
@@ -949,7 +973,7 @@ def buy_from_tracking_portfolio():
     df = pd.read_csv(stocks_track_path)
     # Filter the DataFrame to remove the specific row
     for index,row in df.iterrows():
-        if (int(row['Quantity'])==int(qty)) and (convert_date(row['Sell Date'])== convert_date(sold_date)) and (row['Company'] == company) and (convert_date(row['Buy Date'])== convert_date(bought_date)) and ((float(row['Buy Price'])) == (float(price_bought_at))) and ((float(row['Target']))== (float(target))):
+        if (float(row['Quantity'])==float(qty)) and (convert_date(row['Sell Date'])== convert_date(sold_date)) and (row['Company'] == company) and (convert_date(row['Buy Date'])== convert_date(bought_date)) and ((float(row['Buy Price'])) == (float(price_bought_at))) and ((float(row['Target']))== (float(target))):
             
             df=df.drop(index,axis='index')
     
@@ -962,7 +986,7 @@ def buy_from_tracking_portfolio():
     remaining_up_list=[]
     for index,row in df.iterrows():
         ltp=return_ltp(row['Company'])
-        curr_val=ltp*int(row['Quantity'])
+        curr_val=ltp*float(row['Quantity'])
         pl=((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100
         rem_up=((float(row['Target'])-float(ltp))/float(ltp))*100
         c_val.append(round(curr_val,2))
@@ -1012,14 +1036,12 @@ def delete_row():
     price_bought_at = request.form['price_bought_at']
     target = request.form['target']
     quantity = request.form['quantity']
-    
-
-
     # Load the DataFrame
     df = pd.read_csv(stocks_track_path)
+    print(df)
     # Filter the DataFrame to remove the specific row
     for index,row in df.iterrows():
-        if (int(row['Quantity'])==int(quantity)) and (convert_date(row['Sell Date'])== convert_date(sold_date)) and (row['Company'] == company) and (convert_date(row['Buy Date'])== convert_date(bought_date)) and ((float(row['Buy Price'])) == (float(price_bought_at))) and ((float(row['Target']))== (float(target))):
+        if (float(row['Quantity'])==float(quantity)) and (convert_date(row['Sell Date'])== convert_date(sold_date)) and (row['Company'] == company) and (convert_date(row['Buy Date'])== convert_date(bought_date)) and ((float(row['Buy Price'])) == (float(price_bought_at))) and ((float(row['Target']))== (float(target))):
             
             df=df.drop(index,axis='index')
     
@@ -1032,7 +1054,7 @@ def delete_row():
     remaining_up_list=[]
     for index,row in df.iterrows():
         ltp=return_ltp(row['Company'])
-        curr_val=ltp*int(row['Quantity'])
+        curr_val=ltp*float(row['Quantity'])
         pl=((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100
         rem_up=((float(row['Target'])-float(ltp))/float(ltp))*100
         c_val.append(round(curr_val,2))
@@ -1078,6 +1100,15 @@ def add_to_portfolio_from_rec():
     bought_at=request.form['price_buy']
     upside=request.form['upside']
     qty=request.form['qty']
+    df = pd.read_csv(portfolio_path)
+    for index,row in df.iterrows():
+        if row['Company']== company:
+            print(row['Quantity'])
+            bought_at = round(((float(qty)*float(bought_at))+(float(row['Quantity'])*float(row['Price Bought At'])))/(float(qty)+float(row['Quantity'])),2)
+            qty = float(qty) +float(row['Quantity'])
+            df=df.drop(index,axis='index')
+    df.to_csv(portfolio_path, index=False)
+
     portfolio_data=pd.DataFrame([company,date,bought_at,target,upside,qty]).transpose()
     portfolio_data.to_csv(portfolio_path, mode='a', header=False, index=False)
     orders_data=pd.DataFrame([date,'Buy',company,'CNC',qty,bought_at]).transpose()
@@ -1190,11 +1221,19 @@ def buy_action():
     ltp=request.form['price_buy']
     upside=round(((float(target)-float(ltp))/float(ltp))*100,2)
     qty=request.form['qty']
+    df = pd.read_csv(portfolio_path)
+    for index,row in df.iterrows():
+        if row['Company']== company:
+            print(row['Quantity'])
+            ltp = round(((float(qty)*float(ltp))+(float(row['Quantity'])*float(row['Price Bought At'])))/(float(qty)+float(row['Quantity'])),2)
+            qty = float(qty) +float(row['Quantity'])
+            df=df.drop(index,axis='index')
+    df.to_csv(portfolio_path, index=False)
     portfolio_data=pd.DataFrame([company,date,ltp,target,upside,qty]).transpose()
     portfolio_data.to_csv(portfolio_path, mode='a', header=False, index=False)
     orders_data=pd.DataFrame([date,'Buy',company,'CNC',qty,ltp]).transpose()
     orders_data.to_csv(history_orders_path, mode='a', header=False, index=False)
-
+    
     columns=['Company','Quantity']
     company=[]
     quantity=[]
@@ -1209,6 +1248,7 @@ def buy_action():
     df_actions=pd.DataFrame(columns=columns)
     for index,row in df.iterrows():
         ltp=return_ltp(row['Company'])
+        print(ltp)
         pl=round(((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100,2)
         if pl >5.0:
             company.append(row['Company'])
@@ -1230,10 +1270,10 @@ def buy_action():
             sell.append(False)
             curr_pl.append(pl)
             date.append(row['Bought Date'])
-
+    print(ltp_list)
     df_actions['Company']=company
     df_actions['Quantity']=quantity
-    df_actions['LTP']=ltp
+    df_actions['LTP']=ltp_list
     df_actions['Price']=price
     df_actions['Target']=target
     df_actions['P&L']=curr_pl
@@ -1252,21 +1292,29 @@ def sell_action():
     price_bought_at = request.form['price_bought_at']
     target = request.form['target']
     quantity = request.form['quantity']
-    print(quantity)
-
+    qty=request.form['qty']
     sold_on=datetime.date.today()
     sold_price=return_ltp(company)
     rcvd_return=round(((float(sold_price)-float(price_bought_at))/float(price_bought_at))*100,2)
-    track_df=pd.DataFrame([company,bought_date,sold_on,target,price_bought_at,sold_price,quantity,rcvd_return]).transpose()
-    track_df.to_csv(stocks_track_path, mode='a', header=False, index=False)
     df = pd.read_csv(portfolio_path)
     for index,row in df.iterrows():
         print(row['Quantity'])
-        if (int(row['Quantity'])==int(quantity)) and (row['Company'] == company) and (convert_date(row['Bought Date'])== convert_date(bought_date)) and ((float(row['Price Bought At'])) == (float(price_bought_at))) and ((float(row['Target']))== (float(target))):
-            
-            df=df.drop(index,axis='index')
-    orders_data=pd.DataFrame([sold_on,'Sell',company,'CNC',quantity,sold_price]).transpose()
-    orders_data.to_csv(history_orders_path, mode='a', header=False, index=False)
+        if (float(row['Quantity'])==float(quantity)) and (row['Company'] == company) and (convert_date(row['Bought Date'])== convert_date(bought_date)) and ((float(row['Price Bought At'])) == (float(price_bought_at))) and ((float(row['Target']))== (float(target))):
+            if float(qty)== float(quantity):
+                df=df.drop(index,axis='index')
+                orders_data=pd.DataFrame([sold_on,'Sell',company,'CNC',quantity,sold_price]).transpose()
+                orders_data.to_csv(history_orders_path, mode='a', header=False, index=False)
+                track_df=pd.DataFrame([company,bought_date,sold_on,target,price_bought_at,sold_price,qty,rcvd_return]).transpose()
+                track_df.to_csv(stocks_track_path, mode='a', header=False, index=False)
+            elif float(qty)<float(quantity):
+                df.at[index,'Quantity']=float(quantity) -float(qty)
+                orders_data=pd.DataFrame([sold_on,'Sell',company,'CNC',qty,sold_price]).transpose()
+                orders_data.to_csv(history_orders_path, mode='a', header=False, index=False)
+                track_df=pd.DataFrame([company,bought_date,sold_on,target,price_bought_at,sold_price,qty,rcvd_return]).transpose()
+                track_df.to_csv(stocks_track_path, mode='a', header=False, index=False)
+            else:
+                flash('Cannot sell more than you own!','danger')
+    
     df.to_csv(portfolio_path,index=False)
 
     columns=['Company','Quantity']
@@ -1307,7 +1355,7 @@ def sell_action():
 
     df_actions['Company']=company
     df_actions['Quantity']=quantity
-    df_actions['LTP']=ltp
+    df_actions['LTP']=ltp_list
     df_actions['Price']=price
     df_actions['Target']=target
     df_actions['P&L']=curr_pl

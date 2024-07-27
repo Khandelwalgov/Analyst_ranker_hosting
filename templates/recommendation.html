@@ -67,8 +67,8 @@
         <option value="{{ option }}" {% if form_values['market-cap'] == option %}selected{% endif %}>{{ option }}</option>
     {% endfor %}
 </select>
-<label for="rank-consider">Weighted Averages Using Rank</label>
-<input type ="checkbox" id ="rank-consider" name="rank-consider" value ="yes" {% if form_values['rank-consider'] == 'yes' %}checked{% endif %}/>
+<label for="rank-consider" hidden>Weighted Averages Using Rank</label>
+<input hidden type ="checkbox" id ="rank-consider" name="rank-consider" value ="yes" {% if form_values['rank-consider'] == 'yes' %}checked{% endif %}/>
 <br/>
 <div id="content-style">
 <div id="content"
