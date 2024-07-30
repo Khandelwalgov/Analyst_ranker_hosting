@@ -99,7 +99,10 @@ def UpdateCalls():
                         data_original_title = label_element.get('title', '')
                         if 'for' in data_original_title:
                             ticker = data_original_title.split('for ')[-1]
-                if date and company and analyst and date == from_date and analyst==till_analyst and company==till_company:
+                # if date and company and analyst and date == from_date and analyst==till_analyst and company==till_company:
+                #         go_on = False
+                #         break
+                if date and date == from_date:
                         go_on = False
                         break
                 td_element = row.find('td', class_='rightAlgn minorchange invisible-details-control')
