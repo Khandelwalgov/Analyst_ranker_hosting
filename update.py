@@ -103,7 +103,7 @@ def UpdateCalls():
                         go_on = False
                         break
                 td_element = row.find('td', class_='rightAlgn minorchange invisible-details-control')
-                print(td_element)
+                #print(td_element)
                 if td_element:
                     reco = td_element.contents[0].strip()
                 else:
@@ -138,7 +138,7 @@ def UpdateCalls():
                             upside = None  # or handle division by zero cas
                     market_cap=dict1[company]['Market Cap']
                     data.append([advice, company, target, analyst, date, ticker, reco,upside,long_name,market_cap,to_be_taken])
-                    #print([advice, company, target, analyst, date, ticker, reco,upside,long_name,market_cap,to_be_taken])
+                    print([advice, company, target, analyst, date, ticker, reco,upside,long_name,market_cap,to_be_taken])
 
         if data:
             
@@ -201,6 +201,7 @@ def UpdateCalls():
     from_date = df1.iloc[-1]["Date"]
     till_company=df1.iloc[-1]["Company"]
     till_analyst=df1.iloc[-1]["Analyst"]
+    print([from_date,till_company,till_analyst])
     #dfm=pd.read_csv(r'E:\python\CompanyMasterUpdate.csv')
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
