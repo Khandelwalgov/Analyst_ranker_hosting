@@ -262,11 +262,17 @@ def historicData():
                 print(count)
                 ticker_symbol_nse = str(ticker_symbol)
                 stock_data = yf.download(ticker_symbol_nse, start=from_date)
+                print(stock_data)
                 if not stock_data.empty:
                     stock_data['Company'] = com
                     stock_data['Long Name'] =lname
                     stock_data['Ticker']=ticker_symbol
                     stock_data.reset_index(inplace=True)
-                    stock_data.to_csv(csv_file_path, mode='a', header=False, index=False)
+                    stock_data.to_csv(csv_file_path, mode='a', header=False)
                     print(f'Successfully appended {len(stock_data)} rows for {lname} ')
+    df = pd.read_csv(csv_file_path)
+    df.reset_index(drop=True, inplace=True)
+
+    # Save the DataFrame back to a CSV file
+    df.to_csv(csv_file_path, index=False)
     return

@@ -43,6 +43,7 @@ def convert_date(date_str):
         "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12
     }
     date_str=str(date_str)
+    print(date_str)
     # Check if the date string is in "08 Apr 2024" format
     if date_str[2] == ' ':
         # Split the date string into its components
