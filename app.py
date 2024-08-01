@@ -283,7 +283,7 @@ def dashboard():
     global stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df, dropdown_options
     global default_form_values,dropdown_options_portfolio_gen
     global final_df
-    UpdateCalls()
+    #UpdateCalls()
     date_to_be_considered =datetime.date.today()-datetime.timedelta(days=365)
     default_form_values = {
     'start-date': '2018-01-01',
