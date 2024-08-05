@@ -289,7 +289,7 @@ def dashboard():
     # final_df = pd.DataFrame(columns=columns)
     # recommendation_df=pd.DataFrame(columns=columns)
     # rank_df=pd.DataFrame(columns=columns)
-    #UpdateCalls()
+    UpdateCalls()
     print(1)
     time.sleep(5)
     date_to_be_considered =datetime.date.today()-datetime.timedelta(days=365)
