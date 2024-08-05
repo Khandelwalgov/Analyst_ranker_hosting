@@ -201,7 +201,7 @@ def UpdateCalls():
     df1 = pd.read_csv(csv_file_path)
     df1['Date'] = df1['Date'].apply(convert_date)
     df1 = df1.sort_values(by='Date', ascending=True)
-    from_date = df1.iloc[-1]["Date"]
+    from_date = df1.iloc[-1]["Date"] -datetime.timedelta(days=2)
     till_company=df1.iloc[-1]["Company"]
     till_analyst=df1.iloc[-1]["Analyst"]
     print([from_date,till_company,till_analyst])
@@ -254,7 +254,7 @@ def historicData():
     # df1['Date']=df1['Date'].apply(convert_date)
     # print(df1[(df1['Date']==datetime.date(2024,7,26))])
     from_date = str(convert_date(df1.iloc[-1]['Date'])+datetime.timedelta(days=1))
-    if convert_date(from_date) <datetime.date.today():
+    if (convert_date(from_date)-datetime.timedelta(days=1)) <datetime.date.today():
         for com,lname, ticker_symbol,x in zip(dfsu["Company"],dfsu["Long Name"],dfsu["Ticker"],dfsu["to be taken"]):
             
             if x!=0:
@@ -268,7 +268,7 @@ def historicData():
                     stock_data['Long Name'] =lname
                     stock_data['Ticker']=ticker_symbol
                     stock_data.reset_index(inplace=True)
-                    stock_data.to_csv(csv_file_path, mode='a', header=False)
+                    stock_data.to_csv(csv_file_path, mode='a', header=False,index=False)
                     print(f'Successfully appended {len(stock_data)} rows for {lname} ')
     df = pd.read_csv(csv_file_path)
     df.reset_index(drop=True, inplace=True)

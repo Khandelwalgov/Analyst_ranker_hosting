@@ -16,6 +16,7 @@ import os
 import csv
 from flask_dance.contrib.google import make_google_blueprint, google
 from update import UpdateCalls,historicData
+import time
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///users.sqlite3'
@@ -283,19 +284,35 @@ def dashboard():
     global stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df, dropdown_options
     global default_form_values,dropdown_options_portfolio_gen
     global final_df
+
+    # columns = ['Total Calls in Period: ', 'Total Successes in the period: ', 'Success %']
+    # final_df = pd.DataFrame(columns=columns)
+    # recommendation_df=pd.DataFrame(columns=columns)
+    # rank_df=pd.DataFrame(columns=columns)
     #UpdateCalls()
+    print(1)
+    time.sleep(5)
     date_to_be_considered =datetime.date.today()-datetime.timedelta(days=365)
+    print(2)
+    time.sleep(5)
     default_form_values = {
     'start-date': '2018-01-01',
     'end-date': str(date_to_be_considered),
     'period': '1Y',
     'analyst': 'All'
     }
+    print(3)
+    time.sleep(5)
     user=session['user']
+    print(4)
+    time.sleep(5)
     stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df = load_data(user)
+    print(5)
+    time.sleep(5)
     dropdown_options['analyst']= list_of_unique_analysts
     dropdown_options_portfolio_gen['Company']=company_list
-    
+    print(6)
+    time.sleep(5)
     session['form_values'] = default_form_values
     return render_template('dashboard.html')
 #Analyst view
@@ -325,7 +342,6 @@ def analyst():
         session['form_values'] = form_values
     else:
         form_values = session['form_values']
-
     return render_template('analyst.html',df=final_df, form_values=form_values, dropdown_options=dropdown_options)
 
 @app.route('/generate_data', methods=['POST'])
@@ -348,7 +364,7 @@ def generate_data():
     analyst_to_be_displayed = form_values['analyst']
 
     final_df,calls_to_be_processed,unique_company = process_data(start_date, end_date, dur, analyst_to_be_displayed, l1, analyst_dfs, company_data)
-    return render_template('analyst.html', df=final_df, form_values=form_values, dropdown_options=dropdown_options)
+    return render_template('analyst.html', df = final_df, form_values=form_values, dropdown_options=dropdown_options)
 
 @app.route('/sort_table', methods=['POST'])
 @login_required
@@ -358,7 +374,7 @@ def sort_table():
         sort_by = request.form['sort_by']
         if final_df is not None and len(final_df) > 1:
             final_df = sort_data_frame(final_df, sort_by)
-        return render_template('analyst.html', df=final_df, form_values=session['form_values'], dropdown_options=dropdown_options)
+        return render_template('analyst.html', df = final_df, form_values=session['form_values'], dropdown_options=dropdown_options)
 
 # To return analyst wise calls to modal
 @app.route('/get_analyst_details')
@@ -486,6 +502,8 @@ def generate_rec():
         'minimum-upside-current':request.form['minimum-upside-current'],
         'market-cap':request.form['market-cap']
     }
+    UpdateCalls()
+    historicData()
     #priority=form_values_rec['priority']
     priority='Number of Recommendations'
     sort_by=form_values_rec['sort-by']

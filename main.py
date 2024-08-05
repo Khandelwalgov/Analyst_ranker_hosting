@@ -63,8 +63,11 @@ def load_data(user):
         if i not in l1:
             company_list.append(i)
     # Converting the Date columns to DateTime objects
+    print(1)
     calls_df['Date'] = calls_df['Date'].apply(convert_date)
+    print(2)
     history_df['Date'] = history_df['Date'].apply(convert_date)
+    print(3)
     calls_df['Reco']=calls_df['Reco'].round(2)
     calls_df['Upside']=calls_df['Upside'].round(2)
     unique_analysts = calls_df['Analyst'].unique()
