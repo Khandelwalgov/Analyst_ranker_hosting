@@ -19,10 +19,11 @@ from update import UpdateCalls,historicData
 import time
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///users.sqlite3'
+
+#User database
+app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///users.sqlite3' 
 
 app.secret_key = 'koinahibtayega'  # Needed to encrypt session data
-# Global definition of l1, analysts, and company data to ensure they are loaded only once, saving time
 
 db = SQLAlchemy(app)
 login_manager=LoginManager()
@@ -33,6 +34,7 @@ login_manager.login_view='login'
 def load_user(user_id):
     return users.query.get(int(user_id))
 
+#User Databse Model
 class users(db.Model,UserMixin):
     _id =db.Column("id",db.Integer,primary_key=True)
     name=db.Column(db.String(200),nullable =False)
@@ -55,8 +57,7 @@ class users(db.Model,UserMixin):
         return self._id
     
 
-# Create form class
-
+# WTForms classes for Login and signup
 class LogInForm(FlaskForm):
     username = StringField("Username",validators=[DataRequired()])
     password_hash= PasswordField('Password',validators=[DataRequired()])
@@ -69,6 +70,8 @@ class SignUpForm(FlaskForm):
     password_hash=PasswordField('Password',validators=[DataRequired(),EqualTo('password_hash2',message='Passwords must match!')])
     password_hash2=PasswordField('Confirm Password',validators=[DataRequired()])
     submit = SubmitField("Sign Up")
+
+# Flask route for signup
 @app.route('/signup',methods=['GET','POST'])
 def signup():
     name = None
@@ -77,17 +80,20 @@ def signup():
     if form.validate_on_submit():
         user = users.query.filter_by(username=form.username.data).first()
         if user is None:
+            # if no such username exists already, check if email exists
             user = users.query.filter_by(email=form.email.data).first()
             if user is None:
+                # if no such email is present already create DB entry
                 hashed_pwd=generate_password_hash(form.password_hash.data)
                 user=users(name=form.name.data,email=form.email.data,username=form.username.data,password_hash=hashed_pwd)
                 db.session.add(user)
                 db.session.commit()
-                current_dir = os.path.dirname(os.path.abspath(__file__))
+                # create user directory inside csv_data and add the needed CSV files
+                current_dir = os.path.dirname(os.path.abspath(__file__)) 
                 parent_dir = os.path.dirname(current_dir)
                 dir_to_be_used=os.path.join(parent_dir,'csv_data')
                 user_dir = f'User{user._id}csv_data'
-                dir_to_create = os.path.join(dir_to_be_used, user_dir)
+                dir_to_create = os.path.join(dir_to_be_used, user_dir) 
 
                 # Create the directory if it doesn't exist
                 if not os.path.exists(dir_to_create):
@@ -112,7 +118,7 @@ def signup():
                         writer.writerow(['Company', 'Buy Date', 'Sell Date', 'Target', 'Buy Price', 'Sell Price', 'Quantity', 'Received Return'])
 
                     flash('User added successfully and directory with CSV files created.','success')
-                #flash('User Added successfully','success')
+                flash('User Added successfully','success')
                 print('User Added successfully')
                 return redirect(url_for('login'))
             else:
@@ -124,6 +130,7 @@ def signup():
 
     return render_template('signup.html',form=form,name=name)
 
+#Login route
 @app.route('/login',methods=['GET','POST'])
 def login():
     
@@ -131,7 +138,10 @@ def login():
     if form.validate_on_submit():
         user = users.query.filter_by(username=form.username.data).first()
         if user and user.verify_password(form.password_hash.data):
+            #login user
             login_user(user)
+
+            #add u_id to session so that user specific csvs can be loaded
             session['user']=user._id
             flash('Login successful', 'success')
             print('Login successful')
@@ -141,6 +151,7 @@ def login():
             print('Invalid username or password')
     return render_template('login.html', form=form)
 
+#Logout route
 @app.route('/logout',methods=['GET','POST'])
 @login_required
 def logout():
@@ -150,7 +161,7 @@ def logout():
     print('You have been logged out successfully')
     return(redirect(url_for('index')))
 
-
+#To be used for google login, need to add the keys and all at top for it
 @app.route('/login/google/authorized')
 def google_login():
     if not google.authorized:
@@ -210,37 +221,56 @@ def google_login():
     return redirect(url_for("dashboard"))
 
 
+# Global definitions
+# analyst rank dictionary to be used for easy access for ranks
+analyst_rank={} 
 
-analyst_rank={}
-# Global definition of final_df to make sorting easier as it won't have to be processed again every time sorting has to be done
+#empty output dfs 
 columns = ['Total Calls in Period: ', 'Total Successes in the period: ', 'Success %']
 final_df = pd.DataFrame(columns=columns)
 recommendation_df=pd.DataFrame(columns=columns)
 rank_df=pd.DataFrame(columns=columns)
 stocks_df=pd.DataFrame(columns=columns)
+calls_df=pd.DataFrame(columns=columns)
+
 form_values_rec={}
+
+#unique companies list
 unique_company={}
+
+#calls that are processed in one go, used to display the modal content in analyst view
 calls_to_be_processed= {}
+
 rec_all_calls={}
+
+#for hovering modal in analyst view
 calls_by_company_stocks={}
+
+#drop down options inside analyst view
 dropdown_options = {
 'period': ['1Y', '6M', '3M'],
     }
-calls_df=pd.DataFrame(columns=columns)
-# Default values for the forms
-date_to_be_considered =datetime.date.today()-datetime.timedelta(days=365)
+
+#drop down options for portfolio generation
 dropdown_options_portfolio_gen={
 }
+
+# Default values for the form in analyst rank
+date_to_be_considered =datetime.date.today()-datetime.timedelta(days=365)
 default_form_values = {
     'start-date': '2018-01-01',
     'end-date': str(date_to_be_considered),
     'period': '1Y',
     'analyst': 'All'
 }
+
+#default values in hot stocks
 default_form_values_stock={
     'start-date': '2018-01-01',
     'end-date': str(date_to_be_considered+datetime.timedelta(days=365)),
 }
+
+#default form values in recommendation
 default_form_values_rec={
     'priority': 'Number of Recommendations',
     'period':'30D',
@@ -254,13 +284,15 @@ default_form_values_rec={
     'minimum-upside-current':'0%',
     'market-cap':'All'
 }
+
+#default form values in ranker
 default_form_values_ranker={
     'start-date': '2021-01-01',
     'end-date': str(date_to_be_considered),
     'period-considered': '1Y'
 }
-# Dropdown options for analyst and recommendations
 
+#drop down options for recommendation page
 dropdown_options_for_rec={
     'priority':['Number of Recommendations','Average Upside','Average Target','Max Upside','Max Target'],
     'period':['1D','5D','7D','15D','30D','120D'],
@@ -272,11 +304,14 @@ dropdown_options_for_rec={
     'minimum-upside-current':['0%','10%','15%','20%'],
     'market-cap':['0-500','500-2k','2k-5k','5k-20k','20k+','All']
 }
-#Home page route 
+
+#Home page route / default landing page route
 @app.route('/')
 def index():
     
     return render_template('index.html')
+
+#first page after login
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -289,39 +324,38 @@ def dashboard():
     # final_df = pd.DataFrame(columns=columns)
     # recommendation_df=pd.DataFrame(columns=columns)
     # rank_df=pd.DataFrame(columns=columns)
+
+    #update calls using webscraping from trendlyne
     UpdateCalls()
-    print(1)
-    time.sleep(5)
+
+    #default Analyst view form values
     date_to_be_considered =datetime.date.today()-datetime.timedelta(days=365)
-    print(2)
-    time.sleep(5)
     default_form_values = {
     'start-date': '2018-01-01',
     'end-date': str(date_to_be_considered),
     'period': '1Y',
     'analyst': 'All'
     }
-    print(3)
-    time.sleep(5)
+
+    #save user for accessing user specific directory and files
     user=session['user']
-    print(4)
-    time.sleep(5)
+
+    #load all CSVs into dataframe and create dictionaries lists and even transfer paths for user specific CSVs
     stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df = load_data(user)
-    print(5)
-    time.sleep(5)
+
     dropdown_options['analyst']= list_of_unique_analysts
     dropdown_options_portfolio_gen['Company']=company_list
-    print(6)
-    time.sleep(5)
     session['form_values'] = default_form_values
     return render_template('dashboard.html')
-#Analyst view
 
+#Force update data using the button on home page 
 @app.route('/update',methods=['POST'])
 @login_required
 def update():
+    historicData()
     return redirect(url_for('dashboard'))
 
+#analyst view
 @app.route('/analyst',methods=['GET', 'POST'])
 @login_required
 def analyst():
@@ -332,7 +366,10 @@ def analyst():
     global calls_to_be_processed
     global final_df
     global unique_company
+
     if request.method == 'POST':
+
+        #request data from form
         form_values = {
             'start-date': request.form.get('start-date', default_form_values['start-date']),
             'end-date': request.form.get('end-date', default_form_values['end-date']),
@@ -344,12 +381,15 @@ def analyst():
         form_values = session['form_values']
     return render_template('analyst.html',df=final_df, form_values=form_values, dropdown_options=dropdown_options)
 
+#generate df inside analyst_view
 @app.route('/generate_data', methods=['POST'])
 @login_required
 def generate_data():
     global calls_to_be_processed
     global final_df
     global unique_company
+
+    #pull values from form
     form_values = {
         'start-date': request.form['start-date'],
         'end-date': request.form['end-date'],
@@ -363,9 +403,11 @@ def generate_data():
     dur = form_values['period']
     analyst_to_be_displayed = form_values['analyst']
 
+    #Process data
     final_df,calls_to_be_processed,unique_company = process_data(start_date, end_date, dur, analyst_to_be_displayed, l1, analyst_dfs, company_data)
     return render_template('analyst.html', df = final_df, form_values=form_values, dropdown_options=dropdown_options)
 
+#sort the analyst df according to selected column
 @app.route('/sort_table', methods=['POST'])
 @login_required
 def sort_table():
@@ -380,8 +422,11 @@ def sort_table():
 @app.route('/get_analyst_details')
 @login_required
 def get_analyst_details():
+    #request analyst name
     analyst = request.args.get('analyst')
     analyst = urllib.parse.unquote(analyst)
+
+    
     if analyst in calls_to_be_processed:
         details_df = calls_to_be_processed[analyst].copy()
         if 'Remarks(if any)' in details_df.columns:
@@ -406,21 +451,27 @@ def get_analyst_company_details():
     if analyst in unique_company:
         details_df=unique_company[analyst]
         details_html=details_df.to_html(classes='inlay-table')
+
+        #jsonify html so that hover modal can be used effectively
         return jsonify({'html': details_html})
     return jsonify({'html': 'No details available for this analyst.'})
 
-#To stocks.html
+#Stocks route
 @app.route('/stocks')
 @login_required
 def stocks():
     global default_form_values_stock
     global stocks_df
     return render_template('stocks.html',df=stocks_df,form_values =default_form_values_stock)
+
+#generate hot stocks df
 @app.route('/generate_stocks_info',methods=['POST'])
 @login_required
 def generate_stocks_info():
     global stocks_df
     global calls_by_company_stocks
+
+    #call form values
     form_values = {
         'start-date': request.form['start-date'],
         'end-date': request.form['end-date']
@@ -429,13 +480,18 @@ def generate_stocks_info():
 
     start_date = convert_date(form_values['start-date'])
     end_date = convert_date(form_values['end-date'])
+
+    #process data
     stocks_df,calls_by_company_stocks=hot_stocks_backend(start_date,end_date,calls_by_company,l1)
     return render_template('stocks.html',df=stocks_df,form_values=form_values,)
     
+#Stocks modal route
 @app.route('/get_stocks_details')
 @login_required
 def get_stocks_details():
     global calls_by_company_stocks
+
+    #get company whose detail has to be displayed
     company = request.args.get('company')
     company = urllib.parse.unquote(company)
     if company in calls_by_company_stocks:
@@ -452,31 +508,15 @@ def get_stocks_details():
         return jsonify({'html': details_html})
     return jsonify({'html': 'No details available for this company.'})
 
-#To recommendation.html
+#Recommendation flask route
 @app.route('/recommendation')
 @login_required
 def recommendation():
     global recommendation_df
-    # global rec_all_calls
-    # global dropdown_options_for_rec
-    # global default_form_values_rec
-    # global analyst_rank
-    # global analyst_dfs
-    # global company_data
-    # priority=default_form_values_rec['priority']
-    # period=default_form_values_rec['period']
-    # num = default_form_values_rec['num']
-    # sort_by = default_form_values_rec['sort-by']
-    # rank_consider = default_form_values_rec['rank-consider']
-    # start_date=default_form_values_rec['start-date']
-    # end_date= default_form_values_rec['end-date']
-    # dur=default_form_values_rec['period-considered']
-    # wtcon=True if rank_consider=="yes" else False
-    # df,rec_all_calls=recommended_stocks(start_date, end_date, dur, analyst_dfs, company_data,rank_consider,sort_by,priority,period,num,calls_df,l1,analyst_rank)
-    # columns = ['Total Calls in Period: ', 'Total Successes in the period: ', 'Success %']
-    # df = pd.DataFrame(columns=columns)
     wtcon=True
     return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=default_form_values_rec,wtcon=wtcon)
+
+#Generate recommendation 
 @app.route('/generate_rec',methods=['POST'])
 @login_required
 def generate_rec():
@@ -502,9 +542,11 @@ def generate_rec():
         'minimum-upside-current':request.form['minimum-upside-current'],
         'market-cap':request.form['market-cap']
     }
+
+    #Update data
     UpdateCalls()
     historicData()
-    #priority=form_values_rec['priority']
+    # form values pull
     priority='Number of Recommendations'
     sort_by=form_values_rec['sort-by']
     period=form_values_rec['period']
@@ -518,6 +560,8 @@ def generate_rec():
     wtcon=True if rank_consider=="yes" else False
     mcap=form_values_rec['market-cap']
     recommendation_df,rec_all_calls=recommended_stocks(mcap,upside_filter,upside_factor_weight,start_date, end_date, dur, analyst_dfs, company_data,rank_consider,sort_by,priority,period,num,calls_df,l1,analyst_rank)
+
+    #check if limited number of rows have to be displayed
     if num =='All':
         return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
     else:
@@ -525,11 +569,13 @@ def generate_rec():
         return render_template('recommendation.html',df=temp_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
 
  
-
+#route for displaying calls in recommendation
 @app.route('/get_stocks_details_for_rec')
 @login_required
 def get_stocks_details_for_rec():
     global rec_all_calls
+
+    #request company name
     company = request.args.get('company')
     company = urllib.parse.unquote(company)
     if company in rec_all_calls:
@@ -548,25 +594,32 @@ def get_stocks_details_for_rec():
         return jsonify({'html': details_html})
     return jsonify({'html': 'No details available for this company.'})
 
+#route to generate the graphs in recommendation page using plotly
 @app.route('/generate_stock_graph')
 @login_required
 def generate_stock_graph():
+
+    #request company name
     company = request.args.get('company')
     company = urllib.parse.unquote(company)
     global rec_all_call
     #print(rec_all_calls)
     if company in rec_all_calls:
+        #create copies
         df = rec_all_calls[company].copy()
         hdf = company_data[company].copy()
         
+        #corresponds to the date since which the stock price data is shown
         first_call_date = df['Date'].min()
         today = datetime.date.today()
         to_be_plotted = hdf[(hdf['Date'] >= first_call_date) & (hdf['Date'] <= today)]
+
+        #date list and close price list for plotting
         date_list = to_be_plotted['Date'].tolist()
         close_list = to_be_plotted['Close'].tolist()
         
+        #plot
         trace = go.Scatter(x=date_list, y=close_list, mode='lines', name=f'Price for {company}')
-        
         trace_horizontal_lines = []
         trace_markers = []
         analyst_colors = ['orange', 'green', 'red', 'black','purple']  
@@ -587,11 +640,11 @@ def generate_stock_graph():
 
         # Convert figure to JSON to send to frontend
         graph_json = fig.to_json()
-        
         return jsonify({'graph': graph_json})
     
     return jsonify({'graph': ''})
 
+#shows full table in recommendation page
 @app.route('/show_full_table',methods=['POST'])
 @login_required
 def show_full_rec_table():
@@ -606,12 +659,36 @@ def show_full_rec_table():
 
     wtcon=True 
     return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
+
+#sort recommendation df based on the column clicked (only available for 3-4 columns)
+@app.route('/sort_recommendation_df')
+@login_required
+def sort_recommendation_df():
+    global rec_all_calls
+    global dropdown_options_for_rec
+    global default_form_values_rec
+    global analyst_rank
+    global analyst_dfs
+    global company_data
+    global recommendation_df
+    global form_values_rec
+
+    sort_by = request.args.get('sort_by')
+    direction = request.args.get('direction', 'asc')
+    wtcon =True
+    if sort_by and not recommendation_df.empty:
+        recommendation_df = recommendation_df.sort_values(by=sort_by, ascending=(direction == 'asc'))
+
+    return render_template('recommendation.html', df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
+
+# route to ranker page
 @app.route('/ranker')
 @login_required
 def ranker():
     global rank_df
     return render_template('ranker.html',df=rank_df,dropdown_options_for_rec=dropdown_options_for_rec,form_values=default_form_values_ranker)
 
+#generate rank route
 @app.route('/generate_rank',methods=['POST'])
 @login_required
 def generate_rank():
@@ -619,26 +696,35 @@ def generate_rank():
     global analyst_dfs
     global company_data
     global rank_df
+
+    #pull form values
     form_values_rank={
         'start-date':request.form['start-date'],
         'end-date':request.form['end-date'],
         'period-considered':request.form['period-considered']
     }
+
     start_date=convert_date(form_values_rank['start-date'])
     end_date= convert_date(form_values_rank['end-date'])
     dur=form_values_rank['period-considered']
     dict1,rank_df,dict_df=rankgen(start_date, end_date, dur, analyst_dfs, company_data, l1,analyst_rank)
     df= pd.DataFrame(list(dict1.items()),columns=['Analyst','Score'])
     return render_template('ranker.html',df=rank_df,dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rank)
+
+#route to portfolio 
 @app.route('/portfolio')
 @login_required
 def portfolio():
     global dropdown_options_portfolio_gen,portfolio_path,stocks_track_path
     df=pd.read_csv(portfolio_path)
+
+    #dictionary to add labels to portfolio references (should sell/buy/etc)
     recommendation_sell={}
     reason_recommendation={}
     recommendation_buy={}
     reason_buy={}
+
+    #re rendering logic, update LTP current value check recommendations etc
     c_val=[]
     ltp_list=[]
     pl_list=[]
@@ -680,6 +766,8 @@ def portfolio():
     track_df['LTP']=ltp_list1
     track_df['Current Return']=current_return
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
+
+#route taken by the buy button clicking in portfolio page
 @app.route('/buy_from_portfolio',methods=['POST'])
 @login_required
 def buy_from_portfolio():
@@ -707,6 +795,8 @@ def buy_from_portfolio():
     portfolio_data.to_csv(portfolio_path, mode='a', header=False, index=False)
     orders_data=pd.DataFrame([date,'Buy',company,'CNC',qty,ltp]).transpose()
     orders_data.to_csv(history_orders_path, mode='a', header=False, index=False)
+
+    #re rendering logic, update LTP current value check recommendations etc
     df=pd.read_csv(portfolio_path)
     c_val=[]
     ltp_list=[]
@@ -749,6 +839,7 @@ def buy_from_portfolio():
     track_df['Current Return']=current_return
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
 
+#to upload CSV portfolio from my portfolio page route
 @app.route('/add_csv_portfolio',methods=['POST'])
 @login_required
 def add_to_portfolio():
@@ -760,6 +851,8 @@ def add_to_portfolio():
     reason_recommendation={}
     recommendation_buy={}
     reason_buy={}
+
+    #re rendering logic, update LTP current value check recommendations etc
     df=pd.read_csv(portfolio_path)
     c_val=[]
     ltp_list=[]
@@ -801,6 +894,8 @@ def add_to_portfolio():
     track_df['LTP']=ltp_list1
     track_df['Current Return']=current_return
    
+
+   #file uploading logic
     if 'upload' not in request.files:
         flash('No file part')
         return redirect(request.url)
@@ -835,6 +930,8 @@ def add_to_portfolio():
     reason_recommendation={}
     recommendation_buy={}
     reason_buy={}
+
+    #re rendering logic, update LTP current value check recommendations etc
     df=pd.read_csv(portfolio_path)
     c_val=[]
     ltp_list=[]
@@ -876,10 +973,14 @@ def add_to_portfolio():
     track_df['LTP']=ltp_list1
     track_df['Current Return']=current_return
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
+
+#Sell functionality from portfolio
 @app.route('/sell_track_from_portfolio',methods=['POST'])
 @login_required
 def sell_track_from_portfolio():
     global history_orders_path,portfolio_path,stocks_track_path
+
+    #pull details of the stock to be sold
     company = request.form['company']
     bought_date = request.form['bought_date']
     price_bought_at = request.form['price_bought_at']
@@ -892,6 +993,8 @@ def sell_track_from_portfolio():
     reason_recommendation={}
     recommendation_buy={}
     reason_buy={}
+
+    #adding to track df
     rcvd_return=round(((float(sold_price)-float(price_bought_at))/float(price_bought_at))*100,2)
     df = pd.read_csv(portfolio_path)
     for index,row in df.iterrows():
@@ -915,6 +1018,8 @@ def sell_track_from_portfolio():
     
     # Save the updated DataFrame back to the CSV file
     df.to_csv(portfolio_path,index=False)
+
+    #re rendering logic, update LTP current value check recommendations etc
     df=pd.read_csv(portfolio_path)
     c_val=[]
     ltp_list=[]
@@ -957,6 +1062,7 @@ def sell_track_from_portfolio():
     track_df['Current Return']=current_return
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
 
+#buy again from tracking df
 @app.route('/buy_from_tracking_portfolio',methods=['POST'])
 @login_required
 def buy_from_tracking_portfolio():
@@ -965,6 +1071,8 @@ def buy_from_tracking_portfolio():
     reason_recommendation={}
     recommendation_buy={}
     reason_buy={}
+
+    #pulling buy form details
     company = request.form['company']
     target = request.form['target']
     bought_date = request.form['bought_date']
@@ -997,6 +1105,8 @@ def buy_from_tracking_portfolio():
     
     # Save the updated DataFrame back to the CSV file
     df.to_csv(stocks_track_path,index=False)
+
+    #re rendering logic, update LTP current value check recommendations etc
     df=pd.read_csv(portfolio_path)
     c_val=[]
     ltp_list=[]
@@ -1039,6 +1149,7 @@ def buy_from_tracking_portfolio():
     track_df['Current Return']=current_return
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
 
+#delete from tracking portfolio table
 @app.route('/delete_row', methods=['POST'])
 @login_required
 def delete_row():
@@ -1048,6 +1159,8 @@ def delete_row():
     reason_recommendation={}
     recommendation_buy={}
     reason_buy={}
+
+    #pull details from sell function
     company = request.form['company']
     bought_date = request.form['bought_date']
     sold_date=request.form['sold_date']
@@ -1065,6 +1178,8 @@ def delete_row():
     
     # Save the updated DataFrame back to the CSV file
     df.to_csv(stocks_track_path,index=False)
+
+    #re rendering logic, update LTP current value check recommendations etc
     df=pd.read_csv(portfolio_path)
     c_val=[]
     ltp_list=[]
@@ -1108,6 +1223,8 @@ def delete_row():
         
     
     return render_template('portfolio.html',df=df,track_df=track_df,recommendation_buy=recommendation_buy,reason_buy=reason_buy,recommendation_sell=recommendation_sell,reason_recommendation=reason_recommendation,dropdown_options=dropdown_options_portfolio_gen)
+
+#Buy stock from recommendation page
 @app.route('/add_to_portfolio_from_rec',methods=['POST'])
 @login_required
 def add_to_portfolio_from_rec():
@@ -1152,12 +1269,14 @@ def add_to_portfolio_from_rec():
         temp_df=recommendation_df.head(int(num))
         return render_template('recommendation.html',df=temp_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
 
+#Today updates route
 @app.route('/today')
 @login_required
 def today():
     df=portfolio_updates(portfolio_path)
     return render_template('today.html',df=df)
 
+#historic orders route
 @app.route('/orders')
 @login_required
 def orders():
@@ -1173,7 +1292,7 @@ def orders():
     df['Status']=status
     return render_template('orders.html',df=df)
     
-
+#Today's action route
 @app.route('/actions')
 @login_required
 def actions():
@@ -1193,6 +1312,8 @@ def actions():
     for index,row in df.iterrows():
         ltp=return_ltp(row['Company'])
         pl=round(((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100,2)
+        
+        #Recommendation to sell if profit >5
         if pl >5.0:
             company.append(row['Company'])
             quantity.append(row['Quantity'])
@@ -1227,7 +1348,7 @@ def actions():
     return render_template('actions.html',df=df_actions)
 
 
-
+#buy action from todays action page
 @app.route('/buy_action',methods=['POST'])
 @login_required
 def buy_action():
@@ -1300,6 +1421,8 @@ def buy_action():
     df_actions['Bought Date']=date
 
     return render_template('actions.html',df=df_actions) 
+
+#sell from todays action
 @app.route('/sell_action',methods=['POST'])
 @login_required
 def sell_action():

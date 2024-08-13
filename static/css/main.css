@@ -580,3 +580,7 @@ th[title]:hover:after {
   border-style: none;
   
 }
+.sort-heading{
+  color: white;
+  text-decoration: none;
+}

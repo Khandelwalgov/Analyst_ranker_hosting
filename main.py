@@ -23,7 +23,7 @@ sort_data_frame: sorts the present dataframe with the passed value, returns the 
 
 
 
-
+#load data to df from csv and load portfolio and other paths as well
 def load_data(user):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
@@ -218,6 +218,7 @@ def process_data(start_date, end_date, dur, analyst_to_be_displayed, l1, analyst
                                 break
                     elif (reco > tar and reach <= tar):
                         cdf_dates = cdf["Date"].to_numpy()
+
                         # Find the index where the call_date would fit in the sorted array
                         start_index = np.searchsorted(cdf_dates, call_date)
 
@@ -232,6 +233,7 @@ def process_data(start_date, end_date, dur, analyst_to_be_displayed, l1, analyst
                 else:
                     if (adv in ['Buy', 'Neutral', 'Hold', 'Accumulate'] and reach >= tar):  
                         cdf_dates = cdf["Date"].to_numpy()
+
                         # Find the index where the call_date would fit in the sorted array
                         start_index = np.searchsorted(cdf_dates, call_date)
 
@@ -241,7 +243,7 @@ def process_data(start_date, end_date, dur, analyst_to_be_displayed, l1, analyst
                             if h>=tar:
                                 
                                 #sum_for_average+=(d-call_date).days
-                               # histogram.append((d-call_date).days)
+                               #histogram.append((d-call_date).days)
                                 break
                     elif (adv not in ['Buy', 'Neutral', 'Hold', 'Accumulate'] and reach <= tar):
                         cdf_dates = cdf["Date"].to_numpy()
@@ -291,12 +293,14 @@ def process_data(start_date, end_date, dur, analyst_to_be_displayed, l1, analyst
         format_numbers_to_indian_system(final_df, ["Total Calls in Period: ", "Total Successes in the period: "])
     return final_df,calls_to_be_processed, unique_company
 
+#sort analyst view df (final_df)
 def sort_data_frame(final_df, sort_by):
     final_df = revert_indian_number_format(final_df, ["Total Calls in Period: ", "Total Successes in the period: "])
     final_df = final_df.sort_values(by=sort_by, ascending=False)
     final_df = format_numbers_to_indian_system(final_df, ["Total Calls in Period: ", "Total Successes in the period: "])
     return final_df
 
+#stocks_df processing
 def hot_stocks_backend(start_date,end_date,calls_by_company, l1):
     companies = []
     number_of_calls = []

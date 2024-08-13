@@ -159,19 +159,41 @@
           <tr>
               <th>S. No.</th>
               <th title="Stock recommended">Company</th>
-              <th title="Number of calls for the given company in the period">Num of <br/>Recs</th>
+              <th title="Number of calls for the given company in the period">
+                <a href="{{ url_for('sort_recommendation_df', sort_by='Number of Recommendations', direction='asc' if request.args.get('direction') == 'desc' else 'desc') }}" class="sort-heading">
+                    Num of <br/>Recs
+                <i class="fa fa-sort-up"></i>
+                <i class="fa fa-sort-down"></i>
+                </a>
+              </th>
               {% if wtcon %}
-              <th title="Upside of the weighted average of analysts' targets on the LTP">Weighted Upside<br/>(Current) %</th>
+              <th title="Upside of the weighted average of analysts' targets on the LTP">
+                <a href ='{{url_for("sort_recommendation_df", sort_by="Weighted Upside Current", direction="asc" if request.args.get("direction") == "desc" else "desc") }}' class="sort-heading">
+                Weighted Upside<br/>(Current) %
+                <i class="fa fa-sort-up"></i>
+                <i class="fa fa-sort-down"></i>
+                </a>
+              </th>
               {% endif %}
               {% if wtcon %}
               <th title="Using Analyst rankings to take weighted average of the Targets">Weighted Target<br/>(INR)</th>
               {% endif %}
               <th title="LTP">LTP<br/>(INR)</th>
-              <th title="5% of the average traded value in crores">Max Allowed Trade Value (Cr.)</th>
+              
+              <th title="5% of the average traded value in crores">
+                <a href ='{{url_for("sort_recommendation_df", sort_by="Recommended Trade Value", direction="asc" if request.args.get("direction") == "desc" else "desc") }}' class="sort-heading">
+                Max Allowed Trade Value (Cr.)
+                <i class="fa fa-sort-up"></i>
+                <i class="fa fa-sort-down"></i>
+                </a>
+              </th>
               <th title="(Average traded volume over last 20 days) x (LTP)">Average Traded Value (Cr.)</th>   
               
-              <th title="Market Cap of Company">Mkt Cap<br/>(Cr.)</th>
-              
+              <th title="Market Cap of Company">
+                <a href ='{{url_for("sort_recommendation_df", sort_by="Market Cap", direction="asc" if request.args.get("direction") == "desc" else "desc") }}' class="sort-heading">
+                Mkt Cap<br/>(Cr.)
+                </a>
+              </th>
               <th title="Average Target given by analysts" class="target">Avg Target<br/>(INR)</th>
               <th title="Maximum Target" class="target">Max Target<br/>(INR)</th>
               <th title="Minimum Target" class="target">Min Target<br/>(INR)</th>

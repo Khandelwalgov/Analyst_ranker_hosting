@@ -553,3 +553,7 @@ th[title]:hover:after {
 .inlay-table tbody td {
     color: white;
 }
+.sort-heading{
+    color: white;
+    text-decoration: none;
+  }
