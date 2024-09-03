@@ -102,7 +102,7 @@ def UpdateCalls():
                 # if date and company and analyst and date == from_date and analyst==till_analyst and company==till_company:
                 #         go_on = False
                 #         break
-                if date and date == from_date:
+                if date and date <= from_date:
                         go_on = False
                         break
                 td_element = row.find('td', class_='rightAlgn minorchange invisible-details-control')
