@@ -232,7 +232,7 @@ recommendation_df=pd.DataFrame(columns=columns)
 rank_df=pd.DataFrame(columns=columns)
 stocks_df=pd.DataFrame(columns=columns)
 calls_df=pd.DataFrame(columns=columns)
-
+history_df=pd.DataFrame(columns=columns)
 form_values_rec={}
 
 #unique companies list
@@ -316,7 +316,7 @@ def index():
 @login_required
 def dashboard():
     global dropdown_options
-    global stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df, dropdown_options
+    global stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df, dropdown_options,history_df
     global default_form_values,dropdown_options_portfolio_gen
     global final_df
 
@@ -341,12 +341,13 @@ def dashboard():
     user=session['user']
 
     #load all CSVs into dataframe and create dictionaries lists and even transfer paths for user specific CSVs
-    stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df = load_data(user)
-
+    stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df,history_df = load_data(user)
+    latest_calls_date=max(calls_df['Date'])
+    latest_yfinance=max(history_df['Date'])    
     dropdown_options['analyst']= list_of_unique_analysts
     dropdown_options_portfolio_gen['Company']=company_list
     session['form_values'] = default_form_values
-    return render_template('dashboard.html')
+    return render_template('dashboard.html',latest_calls_date=latest_calls_date,latest_yfinance=latest_yfinance)
 
 #Force update data using the button on home page 
 @app.route('/update',methods=['POST'])
@@ -512,9 +513,11 @@ def get_stocks_details():
 @app.route('/recommendation')
 @login_required
 def recommendation():
-    global recommendation_df
+    global recommendation_df, history_df, calls_df
     wtcon=True
-    return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=default_form_values_rec,wtcon=wtcon)
+    latest_calls_date=max(calls_df['Date'])
+    latest_yfinance=max(history_df['Date']) 
+    return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=default_form_values_rec,wtcon=wtcon, latest_yfinance=latest_yfinance, latest_calls_date=latest_calls_date)
 
 #Generate recommendation 
 @app.route('/generate_rec',methods=['POST'])
@@ -527,7 +530,7 @@ def generate_rec():
     global analyst_dfs
     global company_data
     global recommendation_df
-    global form_values_rec
+    global form_values_rec, calls_df, history_df
     form_values_rec={
 
         #'priority':request.form['priority'],
@@ -544,8 +547,8 @@ def generate_rec():
     }
 
     #Update data
-    UpdateCalls()
-    historicData()
+    # UpdateCalls()
+    # historicData()
     # form values pull
     priority='Number of Recommendations'
     sort_by=form_values_rec['sort-by']
@@ -559,14 +562,16 @@ def generate_rec():
     upside_filter=form_values_rec['minimum-upside-current']
     wtcon=True if rank_consider=="yes" else False
     mcap=form_values_rec['market-cap']
+    latest_calls_date=max(calls_df['Date'])
+    latest_yfinance=max(history_df['Date']) 
     recommendation_df,rec_all_calls=recommended_stocks(mcap,upside_filter,upside_factor_weight,start_date, end_date, dur, analyst_dfs, company_data,rank_consider,sort_by,priority,period,num,calls_df,l1,analyst_rank)
 
     #check if limited number of rows have to be displayed
     if num =='All':
-        return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
+        return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon, latest_calls_date=latest_calls_date, latest_yfinance=latest_yfinance)
     else:
         temp_df=recommendation_df.head(int(num))
-        return render_template('recommendation.html',df=temp_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
+        return render_template('recommendation.html',df=temp_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon, latest_calls_date=latest_calls_date, latest_yfinance=latest_yfinance)
 
  
 #route for displaying calls in recommendation
@@ -655,10 +660,11 @@ def show_full_rec_table():
     global analyst_dfs
     global company_data
     global recommendation_df
-    global form_values_rec
-
+    global form_values_rec, calls_df, history_df
+    latest_calls_date=max(calls_df['Date'])
+    latest_yfinance=max(history_df['Date']) 
     wtcon=True 
-    return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
+    return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon, latest_calls_date=latest_calls_date, latest_yfinance=latest_yfinance)
 
 #sort recommendation df based on the column clicked (only available for 3-4 columns)
 @app.route('/sort_recommendation_df')
@@ -671,15 +677,16 @@ def sort_recommendation_df():
     global analyst_dfs
     global company_data
     global recommendation_df
-    global form_values_rec
-
+    global form_values_rec, calls_df, history_df
+    latest_calls_date=max(calls_df['Date'])
+    latest_yfinance=max(history_df['Date']) 
     sort_by = request.args.get('sort_by')
     direction = request.args.get('direction', 'asc')
     wtcon =True
     if sort_by and not recommendation_df.empty:
         recommendation_df = recommendation_df.sort_values(by=sort_by, ascending=(direction == 'asc'))
 
-    return render_template('recommendation.html', df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
+    return render_template('recommendation.html', df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon, latest_yfinance=latest_yfinance, latest_calls_date=latest_calls_date)
 
 # route to ranker page
 @app.route('/ranker')
@@ -1255,19 +1262,20 @@ def add_to_portfolio_from_rec():
     global analyst_dfs
     global company_data
     global recommendation_df
-    global form_values_rec
+    global form_values_rec, history_df, calls_df
 
     
     num = form_values_rec['num']
     rank_consider=form_values_rec['rank-consider']
-
+    latest_calls_date=max(calls_df['Date'])
+    latest_yfinance=max(history_df['Date'])
     wtcon=True if rank_consider=="yes" else False
     #recommendation_df,rec_all_calls=recommended_stocks(mcap,upside_filter,upside_factor_weight,start_date, end_date, dur, analyst_dfs, company_data,rank_consider,sort_by,priority,period,num,calls_df,l1,analyst_rank)
     if num =='All':
-        return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
+        return render_template('recommendation.html',df=recommendation_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon, latest_calls_date=latest_calls_date, latest_yfinance=latest_yfinance)
     else:
         temp_df=recommendation_df.head(int(num))
-        return render_template('recommendation.html',df=temp_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon)
+        return render_template('recommendation.html',df=temp_df, dropdown_options_for_rec=dropdown_options_for_rec,form_values=form_values_rec,wtcon=wtcon, latest_calls_date=latest_calls_date, latest_yfinance=latest_yfinance)
 
 #Today updates route
 @app.route('/today')

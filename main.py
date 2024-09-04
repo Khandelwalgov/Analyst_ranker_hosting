@@ -83,7 +83,7 @@ def load_data(user):
         analyst_dfs[analyst]=analyst_dfs[analyst].sort_values(by="Date",ascending=False)
 
 
-    return stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df
+    return stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df, history_df
 
 def process_data(start_date, end_date, dur, analyst_to_be_displayed, l1, analyst_dfs, company_data):
 
