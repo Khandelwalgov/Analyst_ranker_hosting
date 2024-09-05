@@ -350,11 +350,11 @@ def dashboard():
     return render_template('dashboard.html',latest_calls_date=latest_calls_date,latest_yfinance=latest_yfinance)
 
 #Force update data using the button on home page 
-@app.route('/update',methods=['POST'])
-@login_required
-def update():
-    historicData()
-    return redirect(url_for('dashboard'))
+# @app.route('/update',methods=['POST'])
+# @login_required
+# def update():
+#     historicData()
+#     return redirect(url_for('dashboard'))
 
 #analyst view
 @app.route('/analyst',methods=['GET', 'POST'])

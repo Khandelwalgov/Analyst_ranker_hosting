@@ -254,14 +254,15 @@ def historicData():
     # df1['Date']=df1['Date'].apply(convert_date)
     # print(df1[(df1['Date']==datetime.date(2024,7,26))])
     from_date = str(convert_date(df1.iloc[-1]['Date'])+datetime.timedelta(days=1))
-    if (convert_date(from_date)-datetime.timedelta(days=1)) <datetime.date.today():
+    max_allowed=str(datetime.date.today()-datetime.timedelta(days=1))
+    if (convert_date(from_date)-datetime.timedelta(days=1)) <datetime.date.today() and (convert_date(from_date)<=convert_date(max_allowed)):
         for com,lname, ticker_symbol,x in zip(dfsu["Company"],dfsu["Long Name"],dfsu["Ticker"],dfsu["to be taken"]):
             
             if x!=0:
                 count+=1
                 print(count)
                 ticker_symbol_nse = str(ticker_symbol)
-                stock_data = yf.download(ticker_symbol_nse, start=from_date)
+                stock_data = yf.download(ticker_symbol_nse, start=from_date, end=max_allowed)
                 print(stock_data)
                 if not stock_data.empty:
                     stock_data['Company'] = com
