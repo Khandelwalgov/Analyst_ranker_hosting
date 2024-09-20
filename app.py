@@ -17,6 +17,11 @@ import csv
 from flask_dance.contrib.google import make_google_blueprint, google
 from update import UpdateCalls,historicData
 import time
+import logging
+
+
+logging.basicConfig(filename='app.log', level=logging.DEBUG,format='%(asctime)s %(levelname)s: %(message)s')
+
 
 app = Flask(__name__)
 
@@ -119,13 +124,16 @@ def signup():
 
                     flash('User added successfully and directory with CSV files created.','success')
                 flash('User Added successfully','success')
+                logging.info('User Added successfully')
                 print('User Added successfully')
                 return redirect(url_for('login'))
             else:
                 flash('Email already exists', 'danger')
+                logging.info('Email already exists')
                 print('Email already exists')
         else:
             flash('Username already exists', 'danger')
+            logging.info('Username already exists')
             print('Username already exists')
 
     return render_template('signup.html',form=form,name=name)
@@ -339,14 +347,81 @@ def dashboard():
 
     #save user for accessing user specific directory and files
     user=session['user']
-
+    stocks_track_path = ''
+    history_orders_path = ''
+    portfolio_path = ''
+    company_list = []
+    l1 = []
+    analyst_dfs = {}
+    company_data = {}
+    list_of_unique_analysts = []
+    calls_by_company = {}
+    calls_df = pd.DataFrame()
+    history_df = pd.DataFrame()
     #load all CSVs into dataframe and create dictionaries lists and even transfer paths for user specific CSVs
-    stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df,history_df = load_data(user)
-    latest_calls_date=max(calls_df['Date'])
-    latest_yfinance=max(history_df['Date'])    
-    dropdown_options['analyst']= list_of_unique_analysts
-    dropdown_options_portfolio_gen['Company']=company_list
-    session['form_values'] = default_form_values
+    try:
+        stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df,history_df = load_data(user)
+        if stocks_track_path == '':
+            flash('Failed to load stocks tracking data. Please check the logs for details.', 'warning')
+            logging.warning('Stocks tracking path not set.')
+
+        if history_orders_path == '':
+            flash('Failed to load history orders data. Please check the logs for details.', 'warning')
+            logging.warning('History orders path not set.')
+
+        if portfolio_path == '':
+            flash('Failed to load portfolio data. Please check the logs for details.', 'warning')
+            logging.warning('Portfolio path not set.')
+
+        # if not company_list:
+        #     flash('Failed to load company list. Please check the logs for details.', 'warning')
+        #     logging.warning('Company list is empty.')
+
+        if not l1:
+            flash('Failed to load company data list. Please check the logs for details.', 'warning')
+            logging.warning('Company data list is empty.')
+
+        if not analyst_dfs:
+            flash('Failed to load analyst data. Please check the logs for details.', 'warning')
+            logging.warning('Analyst data is empty.')
+
+        if not company_data:
+            flash('Failed to load company data. Please check the logs for details.', 'warning')
+            logging.warning('Company data is empty.')
+
+        if not list_of_unique_analysts:
+            flash('Failed to load unique analysts list. Please check the logs for details.', 'warning')
+            logging.warning('Unique analysts list is empty.')
+
+        if not calls_by_company:
+            flash('Failed to load calls by company. Please check the logs for details.', 'warning')
+            logging.warning('Calls by company data is empty.')
+
+        if calls_df.empty:
+            flash('Failed to load calls data. Please check the logs for details.', 'warning')
+            logging.warning('Calls DataFrame is empty.')
+
+        if history_df.empty:
+            flash('Failed to load history data. Please check the logs for details.', 'warning')
+            logging.warning('History DataFrame is empty.')
+
+        
+        latest_calls_date=max(calls_df['Date'])
+        latest_yfinance=max(history_df['Date'])    
+        dropdown_options['analyst']= list_of_unique_analysts
+        dropdown_options_portfolio_gen['Company']=company_list
+        session['form_values'] = default_form_values
+    except Exception as e:
+        logging.error(f"Error in dashboard data loading: {e}")
+        flash('Error loading data. Some features may not be available. Please check the logs for details.', 'danger')
+    
+        # Default values to ensure the dashboard still renders
+        latest_calls_date = datetime.date.min
+        latest_yfinance = datetime.date.min
+        dropdown_options['analyst'] = list_of_unique_analysts
+        dropdown_options_portfolio_gen['Company'] = company_list
+        session['form_values'] = default_form_values
+    
     return render_template('dashboard.html',latest_calls_date=latest_calls_date,latest_yfinance=latest_yfinance)
 
 #Force update data using the button on home page 

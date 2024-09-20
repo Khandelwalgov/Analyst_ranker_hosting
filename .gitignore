@@ -6,3 +6,4 @@ geckodriver.zip
 cert.pem
 csr.pem
 key.pem
+app.log

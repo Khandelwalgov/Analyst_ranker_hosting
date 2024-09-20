@@ -6,6 +6,7 @@ from util import convert_date, revert_indian_number_format, format_numbers_to_in
 from data import Data
 from update import UpdateCalls,historicData
 import os
+import logging
 '''
 main.py file with the functions to be used with different paths and triggers in app.py
 
@@ -25,65 +26,124 @@ sort_data_frame: sorts the present dataframe with the passed value, returns the 
 
 #load data to df from csv and load portfolio and other paths as well
 def load_data(user):
+#     current_dir = os.path.dirname(os.path.abspath(__file__))
+#     parent_dir = os.path.dirname(current_dir)
+#     #Path to the "ToBeIgnored" CSV file
+#     #fpath = r'E:\python\ToBeIgnored.csv'
+#     fpath = os.path.join(parent_dir,'csv_data','ToBeIgnored.csv')
+#     #Path to list of unique analysts
+#     #fpathanalysts=r'E:\python\UniqueAnalysts1.csv'
+#     fpathanalysts=os.path.join(parent_dir,'csv_data','UniqueAnalysts1.csv')
+#     #path to the Calls data CSV
+#     # old file calls_data_file_path = r'E:\python\UpdatedCallsWithRecoPriceAndTickers.csv' 
+#     #calls_data_file_path = r'E:\python\CallsWithUpdatedUpside.csv'
+#     calls_data_file_path=os.path.join(parent_dir,'csv_data','CallsWithUpdatedUpside.csv')
+#     #Historic stocks data CSV file path
+#     # old file historic_company_data_file_path = r'E:\python\HistoricDataWithCompanyAgain.csv'
+#    # historic_company_data_file_path = r'E:\python\HistoricDataFrom2018.csv'
+#     historic_company_data_file_path=os.path.join(parent_dir,'csv_data','HistoricDataFrom2018.csv')
+#     #portfolio_path=r'E:\python\StocksPortfolio.csv'
+#     portfolio_path=os.path.join(parent_dir,'csv_data',f'User{user}csv_data','StocksPortfolio.csv')
+#     try:
+#         df_for_analysts=pd.read_csv(fpathanalysts)
+#         df = pd.read_csv(fpath)
+#         calls_df = pd.read_csv(calls_data_file_path)
+#         history_df = pd.read_csv(historic_company_data_file_path)
+#         #history_orders_path=r'E:\python\HistoryOrders.csv'
+#         history_orders_path=os.path.join(parent_dir,'csv_data',f'User{user}csv_data','HistoryOrders.csv')
+#         #stocks_track_path=r'E:\python\TrackingStocks.csv'
+#         stocks_track_path = os.path.join(parent_dir,'csv_data',f'User{user}csv_data','TrackingStocks.csv')
+
+        
+
+#         list_of_unique_analysts=df_for_analysts['0']
+#         #List containing companies whose data/ticker symbol is not correct
+#         l1 = df['0'].tolist() 
+#         company_list_temp=calls_df['Company'].unique().tolist()
+#         company_list=[]
+#         for i in company_list_temp:
+#             if i not in l1:
+#                 company_list.append(i)
+#         # Converting the Date columns to DateTime objects
+#         print(1)
+#         calls_df['Date'] = calls_df['Date'].apply(convert_date)
+#         print(2)
+#         history_df['Date'] = history_df['Date'].apply(convert_date)
+#         print(3)
+#         calls_df['Reco']=calls_df['Reco'].round(2)
+#         calls_df['Upside']=calls_df['Upside'].round(2)
+#         unique_analysts = calls_df['Analyst'].unique()
+#         # Create a dictionary to store DataFrames for each analyst
+#         calls_df = calls_df.drop_duplicates(keep=False).reset_index(drop=True)
+#         analyst_dfs = {analyst: df.reset_index(drop=True) for analyst,df in calls_df.groupby('Analyst')}
+
+#         # Create a dictionary to store DataFrames for each company
+#         company_data = {company: df.reset_index(drop=True).sort_values(by="Date",ascending=True) for company, df in history_df.groupby('Company')}
+#         calls_by_company= {company: df.reset_index(drop=True).sort_values(by="Date",ascending=False) for company, df in calls_df.groupby('Company')}
+
+#         for analyst in analyst_dfs:
+#             analyst_dfs[analyst]=analyst_dfs[analyst].sort_values(by="Date",ascending=False)
+#     except Exception as e:
+#         raise RuntimeError(f"Error loading CSV files: {e}")
+
+#     return stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df, history_df
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
-    #Path to the "ToBeIgnored" CSV file
-    #fpath = r'E:\python\ToBeIgnored.csv'
-    fpath = os.path.join(parent_dir,'csv_data','ToBeIgnored.csv')
-    #Path to list of unique analysts
-    #fpathanalysts=r'E:\python\UniqueAnalysts1.csv'
-    fpathanalysts=os.path.join(parent_dir,'csv_data','UniqueAnalysts1.csv')
-    #path to the Calls data CSV
-    # old file calls_data_file_path = r'E:\python\UpdatedCallsWithRecoPriceAndTickers.csv' 
-    #calls_data_file_path = r'E:\python\CallsWithUpdatedUpside.csv'
-    calls_data_file_path=os.path.join(parent_dir,'csv_data','CallsWithUpdatedUpside.csv')
-    #Historic stocks data CSV file path
-    # old file historic_company_data_file_path = r'E:\python\HistoricDataWithCompanyAgain.csv'
-   # historic_company_data_file_path = r'E:\python\HistoricDataFrom2018.csv'
-    historic_company_data_file_path=os.path.join(parent_dir,'csv_data','HistoricDataFrom2018.csv')
-    #portfolio_path=r'E:\python\StocksPortfolio.csv'
-    portfolio_path=os.path.join(parent_dir,'csv_data',f'User{user}csv_data','StocksPortfolio.csv')
-    df_for_analysts=pd.read_csv(fpathanalysts)
-    df = pd.read_csv(fpath)
-    calls_df = pd.read_csv(calls_data_file_path)
-    history_df = pd.read_csv(historic_company_data_file_path)
-    #history_orders_path=r'E:\python\HistoryOrders.csv'
-    history_orders_path=os.path.join(parent_dir,'csv_data',f'User{user}csv_data','HistoryOrders.csv')
-    #stocks_track_path=r'E:\python\TrackingStocks.csv'
-    stocks_track_path = os.path.join(parent_dir,'csv_data',f'User{user}csv_data','TrackingStocks.csv')
-
     
+    # Define file paths
+    fpath = os.path.join(parent_dir, 'csv_data', 'ToBeIgnored.csv')
+    fpathanalysts = os.path.join(parent_dir, 'csv_data', 'UniqueAnalysts1.csv')
+    calls_data_file_path = os.path.join(parent_dir, 'csv_data', 'CallsWithUpdatedUpside.csv')
+    historic_company_data_file_path = os.path.join(parent_dir, 'csv_data', 'HistoricDataFrom2018.csv')
+    portfolio_path = os.path.join(parent_dir, 'csv_data', f'User{user}csv_data', 'StocksPortfolio.csv')
 
-    list_of_unique_analysts=df_for_analysts['0']
-    #List containing companies whose data/ticker symbol is not correct
-    l1 = df['0'].tolist() 
-    company_list_temp=calls_df['Company'].unique().tolist()
-    company_list=[]
-    for i in company_list_temp:
-        if i not in l1:
-            company_list.append(i)
-    # Converting the Date columns to DateTime objects
-    print(1)
-    calls_df['Date'] = calls_df['Date'].apply(convert_date)
-    print(2)
-    history_df['Date'] = history_df['Date'].apply(convert_date)
-    print(3)
-    calls_df['Reco']=calls_df['Reco'].round(2)
-    calls_df['Upside']=calls_df['Upside'].round(2)
-    unique_analysts = calls_df['Analyst'].unique()
-    # Create a dictionary to store DataFrames for each analyst
-    calls_df = calls_df.drop_duplicates(keep=False).reset_index(drop=True)
-    analyst_dfs = {analyst: df.reset_index(drop=True) for analyst,df in calls_df.groupby('Analyst')}
+    # Initialize return values
+    stocks_track_path = os.path.join(parent_dir, 'csv_data', f'User{user}csv_data', 'TrackingStocks.csv')
+    history_orders_path = os.path.join(parent_dir, 'csv_data', f'User{user}csv_data', 'HistoryOrders.csv')
+    company_list = []
+    l1 = []
+    analyst_dfs = {}
+    company_data = {}
+    list_of_unique_analysts = []
+    calls_by_company = {}
+    calls_df = pd.DataFrame()
+    history_df = pd.DataFrame()
 
-    # Create a dictionary to store DataFrames for each company
-    company_data = {company: df.reset_index(drop=True).sort_values(by="Date",ascending=True) for company, df in history_df.groupby('Company')}
-    calls_by_company= {company: df.reset_index(drop=True).sort_values(by="Date",ascending=False) for company, df in calls_df.groupby('Company')}
+    try:
+        df_for_analysts = pd.read_csv(fpathanalysts)
+        list_of_unique_analysts = df_for_analysts['0'].tolist()
+    except Exception as e:
+        logging.error(f"Error loading analysts file: {e}")
 
-    for analyst in analyst_dfs:
-        analyst_dfs[analyst]=analyst_dfs[analyst].sort_values(by="Date",ascending=False)
+    try:
+        df = pd.read_csv(fpath)
+        calls_df = pd.read_csv(calls_data_file_path)
+        history_df = pd.read_csv(historic_company_data_file_path)
+
+        company_list_temp = calls_df['Company'].unique().tolist()
+        company_list = [i for i in company_list_temp if i not in df['0'].tolist()]
+
+        # Process DataFrames
+        calls_df['Date'] = calls_df['Date'].apply(convert_date)
+        history_df['Date'] = history_df['Date'].apply(convert_date)
+        calls_df['Reco'] = calls_df['Reco'].round(2)
+        calls_df['Upside'] = calls_df['Upside'].round(2)
+
+        analyst_dfs = {analyst: df.reset_index(drop=True) for analyst, df in calls_df.groupby('Analyst')}
+        company_data = {company: df.reset_index(drop=True).sort_values(by="Date", ascending=True) for company, df in history_df.groupby('Company')}
+        calls_by_company = {company: df.reset_index(drop=True).sort_values(by="Date", ascending=False) for company, df in calls_df.groupby('Company')}
+        
+        for analyst in analyst_dfs:
+            analyst_dfs[analyst] = analyst_dfs[analyst].sort_values(by="Date", ascending=False)
+    
+    except Exception as e:
+        logging.error(f"Error loading or processing data: {e}")
+
+    return stocks_track_path, history_orders_path, portfolio_path, company_list, l1, analyst_dfs, company_data, list_of_unique_analysts, calls_by_company, calls_df, history_df
 
 
-    return stocks_track_path,history_orders_path,portfolio_path,company_list,l1, analyst_dfs, company_data,list_of_unique_analysts, calls_by_company, calls_df, history_df
+
+
 
 def process_data(start_date, end_date, dur, analyst_to_be_displayed, l1, analyst_dfs, company_data):
 
@@ -671,39 +731,42 @@ def portfolio_updates(portfolio_path):
     #csv_file_path = r'E:\python\CallsWithUpdatedUpside.csv'
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
-    path_needed=os.path.join(parent_dir,'csv_data','CallsWithUpdatedUpside.csv')
-    df=pd.read_csv(path_needed)
-    #df=pd.read_csv(csv_file_path)
-    df['Date']=df['Date'].apply(convert_date)
-    df=df[df['Date']>=(datetime.date.today()-datetime.timedelta(days=4))]
-    comp=df['Company'].unique().tolist()
-    checked=[]
-    for index,row in dfp.iterrows():
-        if row['Company'] not in checked:
-            checked.append(row['Company'])
-            ltp=return_ltp(row['Company'])
-            if float(row['Price Bought At'])>float(ltp):
-                string1=f"Current price of {row['Company']} fell below bought price, Current price is INR {ltp}, loss of {round(((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100,2)}% "
-                update_df.loc[len(update_df)] = [string1]
-            elif row['Target']<=ltp:
-                string1=f"Target achieved of {row['Company']}, current return {round(((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100,2)}%"
-                update_df.loc[len(update_df)] = [string1]
-    
-    checked=[]
-
-    for index,row in dfp.iterrows():
+    try:
+        path_needed=os.path.join(parent_dir,'csv_data','CallsWithUpdatedUpside.csv')
+        df=pd.read_csv(path_needed)
+        #df=pd.read_csv(csv_file_path)
+        df['Date']=df['Date'].apply(convert_date)
+        df=df[df['Date']>=(datetime.date.today()-datetime.timedelta(days=4))]
+        comp=df['Company'].unique().tolist()
+        checked=[]
+        for index,row in dfp.iterrows():
+            if row['Company'] not in checked:
+                checked.append(row['Company'])
+                ltp=return_ltp(row['Company'])
+                if float(row['Price Bought At'])>float(ltp):
+                    string1=f"Current price of {row['Company']} fell below bought price, Current price is INR {ltp}, loss of {round(((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100,2)}% "
+                    update_df.loc[len(update_df)] = [string1]
+                elif row['Target']<=ltp:
+                    string1=f"Target achieved of {row['Company']}, current return {round(((float(ltp)-float(row['Price Bought At']))/float(row['Price Bought At']))*100,2)}%"
+                    update_df.loc[len(update_df)] = [string1]
         
-        if row['Company'] in comp and row['Company'] not in checked:
-            checked.append(row['Company'])
-            for dindex,drow in df.iterrows():
-                if row['Company'] ==drow['Company']:
-                    if float(drow['Upside']<0):
-                        string1=f"Downside call on {row['Company']} by {drow['Analyst']} of {round(drow['Upside'],2)}%"
-                        update_df.loc[len(update_df)] = [string1]
-                    else:
-                        string1=f"Upside call on {row['Company']} by {drow['Analyst']} of {round(drow['Upside'],2)}%"
-                        update_df.loc[len(update_df)] = [string1]
+        checked=[]
 
-                    
+        for index,row in dfp.iterrows():
+            
+            if row['Company'] in comp and row['Company'] not in checked:
+                checked.append(row['Company'])
+                for dindex,drow in df.iterrows():
+                    if row['Company'] ==drow['Company']:
+                        if float(drow['Upside']<0):
+                            string1=f"Downside call on {row['Company']} by {drow['Analyst']} of {round(drow['Upside'],2)}%"
+                            update_df.loc[len(update_df)] = [string1]
+                        else:
+                            string1=f"Upside call on {row['Company']} by {drow['Analyst']} of {round(drow['Upside'],2)}%"
+                            update_df.loc[len(update_df)] = [string1]
+
+    except Exception as e:
+        logging.error(f"Error rendering portfolio updates probably because of calls df not loading: {e}")
+        update_df.loc[len(update_df)] =['Error rendering update df']
     return update_df
 
